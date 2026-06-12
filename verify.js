@@ -9,67 +9,56 @@ const path = require('path');
   const r = {};
 
   await p.goto(file);
-  // 1. compact header: tree hidden by default, menu shows "All"
-  r.treeHiddenByDefault = !(await p.locator('#tree').isVisible());
-  r.menuLabel = (await p.locator('#mlabel').textContent()).trim();
+  r.menuLabelDefault = (await p.locator('#mlabel').textContent()).trim();
 
-  // 2. open tree -> Pinned row visible (FI/DK seeded), continents present
+  // 1. the user's scenario: select France, Bosnia and Brazil — picker stays open
   await p.click('#menu');
-  r.pinnedRowVisible = await p.locator('#tree [data-f="PINNED"]').isVisible();
-  r.continents = await p.locator('#tree summary').allTextContents();
+  await p.click('#tree .row[data-cc="FR"]');
+  r.staysOpenAfterPick = await p.locator('#tree').isVisible();
+  await p.click('#tree .row[data-cc="BA"]');
+  await p.click('#tree .row[data-cc="BR"]');
+  r.visibleCodes = await p.locator('article:visible').evaluateAll(
+    els => [...new Set(els.map(e => e.dataset.code))].sort());
+  r.labelThree = (await p.locator('#mlabel').textContent()).trim();
+  r.checkedRows = await p.locator('#tree .row.sel').count();
 
-  // 3. country select: expand Asia, click Japan -> only JP articles, label updates
-  await p.click('#tree summary:has-text("Asia")');
-  await p.click('#tree .row[data-f="JP"]');
-  r.treeClosesOnSelect = !(await p.locator('#tree').isVisible());
-  r.onlyJPVisible = await p.locator('article:visible').evaluateAll(
-    els => els.length > 0 && els.every(e => e.dataset.code === 'JP'));
-  r.labelAfterJP = (await p.locator('#mlabel').textContent()).trim();
-
-  // 4. persists across reload
+  // 2. click outside closes; selection persists across reload
+  await p.screenshot({ path: 'preview_tree.png' });
+  await p.mouse.click(400, 900);
+  r.closedOnOutsideClick = !(await p.locator('#tree').isVisible());
   await p.reload();
   r.labelAfterReload = (await p.locator('#mlabel').textContent()).trim();
 
-  // 5. region filter: All Europe -> only Europe articles, several countries
+  // 3. deselect Bosnia (toggle off)
   await p.click('#menu');
-  await p.click('#tree summary:has-text("Europe")');
-  await p.click('#tree .row[data-f="R:Europe"]');
-  const regions = await p.locator('article:visible').evaluateAll(
-    els => [...new Set(els.map(e => e.dataset.region))]);
-  r.europeOnlyRegion = regions;
-  r.europeCountryCount = await p.locator('article:visible').evaluateAll(
-    els => new Set(els.map(e => e.dataset.code)).size);
-
-  // 6. pinned view from tree
-  await p.click('#menu');
-  await p.click('#tree .row[data-f="PINNED"]');
-  r.pinnedViewCodes = await p.locator('article:visible').evaluateAll(
+  await p.click('#tree .row[data-cc="BA"]');
+  r.codesAfterDeselect = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
 
-  // 7. localized absolute times (no more "5m" relatives)
-  r.sampleTime = (await p.locator('article time').first().textContent()).trim();
-  r.updatedStamp = (await p.locator('#upd').textContent()).trim();
+  // 4. search narrows the list
+  await p.fill('#search', 'fin');
+  r.searchVisibleRows = await p.locator('#tree .row:visible').allTextContents();
+  r.searchGroupLabels = await p.locator('#tree .glab:visible').allTextContents();
 
-  // 8. mute via gear panel still works
-  await p.click('#tree .row[data-f="ALL"]').catch(() => {});
-  await p.click('#menu'); await p.click('#tree .row[data-f="ALL"]');
-  const before = await p.locator('article:visible').count();
+  // 5. quick actions: Pinned (FI+DK seeded) and All
+  await p.click('#selpins');
+  r.pinnedCodes = await p.locator('article:visible').evaluateAll(
+    els => [...new Set(els.map(e => e.dataset.code))].sort());
+  await p.click('#menu'); await p.click('#selall');
+  r.allCount = await p.locator('article:visible').count();
+
+  // 6. mute via gear panel still works
   await p.click('#gear');
-  await p.fill('#mute', 'world cup, trump');
+  await p.fill('#mute', 'world cup');
   await p.locator('#mute').dispatchEvent('change');
-  r.mutedHidden = before - await p.locator('article:visible').count();
+  r.mutedSome = (await p.locator('article:visible').count()) < r.allCount;
 
-  await p.screenshot({ path: 'preview_panel.png' });
-
-  // 9. tree open screenshot + fresh-profile default
-  await p.click('#gear'); await p.click('#menu');
-  await p.screenshot({ path: 'preview_tree.png' });
-
+  // 7. fresh profile defaults
   const ctx2 = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
   const p2 = await ctx2.newPage();
   await p2.goto(file);
+  r.freshLabel = (await p2.locator('#mlabel').textContent()).trim();
   await p2.screenshot({ path: 'preview.png' });
-  r.freshDefaultLabel = (await p2.locator('#mlabel').textContent()).trim();
 
   console.log(JSON.stringify(r, null, 2));
   await b.close();

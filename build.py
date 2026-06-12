@@ -161,25 +161,24 @@ PAGE = """<!doctype html>
           color:var(--meta); padding:2px 4px; }
   #gear:hover { color:var(--ink); }
 
-  /* selection tree */
-  #tree { border-top:1px solid var(--line); margin-top:13px; padding-top:8px;
+  /* country picker (multi-select: click rows to toggle, stays open) */
+  #tree { border-top:1px solid var(--line); margin-top:13px; padding-top:12px;
           max-height:60vh; overflow:auto; }
+  #search { width:100%; border:1px solid var(--line); border-radius:8px;
+            padding:7px 10px; margin-bottom:8px; background:#fff;
+            font:14px -apple-system,"Segoe UI",sans-serif; color:var(--ink);
+            outline:none; }
+  #search:focus { border-color:#c9c4ba; }
+  #tree .acts { display:flex; gap:7px; margin-bottom:4px; }
+  #tree .glab { font:600 11px/1 -apple-system,sans-serif; letter-spacing:.12em;
+                text-transform:uppercase; color:var(--meta); margin:12px 10px 4px; }
   #tree .row { padding:7px 10px; border-radius:8px; cursor:pointer;
                font-size:14.5px; display:flex; align-items:center; gap:8px; }
   #tree .row:hover { background:#f1efe9; }
-  #tree .row.on { background:var(--ink); color:#fff; }
-  #tree .row.on .n, #tree .row.on .star { color:#fff; }
-  #tree summary { list-style:none; cursor:pointer; padding:7px 10px;
-                  border-radius:8px; font-size:14.5px; display:flex;
-                  align-items:center; gap:8px; user-select:none; }
-  #tree summary::-webkit-details-marker { display:none; }
-  #tree summary::after { content:"\\25B8"; margin-left:auto; font-size:11px;
-                         color:var(--meta); transition:.15s; }
-  #tree details[open] summary::after { transform:rotate(90deg); }
-  #tree summary:hover { background:#f1efe9; }
-  #tree .grp { margin-left:14px; }
-  .n { color:var(--meta); font-size:12px; }
-  .star { margin-left:auto; color:var(--accent); font-size:11px; }
+  #tree .row .ck { margin-left:auto; color:var(--accent); font-weight:600;
+                   visibility:hidden; }
+  #tree .row.sel .ck { visibility:visible; }
+  .star { color:var(--accent); font-size:11px; }
 
   /* gear panel */
   #panel { border-top:1px solid var(--line); margin-top:13px; padding-top:14px; }
@@ -217,7 +216,7 @@ PAGE = """<!doctype html>
        overflow:hidden; }
   footer { max-width:720px; margin:0 auto; padding:0 24px 60px;
            color:var(--meta); font-size:12.5px; }
-  .hide, .hideF, .hideM { display:none; }
+  .hide, .hideF, .hideM { display:none !important; }
 </style></head>
 <body>
 <header><div class="wrap">
@@ -226,7 +225,12 @@ PAGE = """<!doctype html>
     <button id="menu"><span id="mlabel">All</span><span class="car">&#9660;</span></button>
     <button id="gear" title="Personalize">&#9881;</button>
   </div>
-  <div id="tree" class="hide">__TREE__</div>
+  <div id="tree" class="hide">
+    <input id="search" placeholder="Search countries&hellip;">
+    <div class="acts"><span class="chip" id="selall">All countries</span><span
+      class="chip hide" id="selpins">&#9733; Pinned</span></div>
+    __PICKER__
+  </div>
   <div id="panel" class="hide">
     <div class="sec"><h2>Pinned countries</h2>
       <div class="chips" id="pinlist"></div></div>
@@ -247,7 +251,11 @@ __ITEMS__
 
   let pins   = LS('pins')   ?? ['FI','DK'];     // default: home + home-away-from-home
   let muted  = LS('muted')  ?? [];
-  let filter = LS('filter') ?? 'ALL';
+  let sel    = LS('sel');                       // selected countries; [] = all
+  if (sel == null) {
+    const old = LS('filter');                   // migrate from the single-filter era
+    sel = (typeof old === 'string' && /^[A-Z]{2}$/.test(old)) ? [old] : [];
+  }
   const read = new Set(LS('read') ?? []);
   const prevVisit = LS('visit') ?? 0;
   SV('visit', Math.floor(Date.now()/1000));
@@ -255,61 +263,83 @@ __ITEMS__
   const tree     = document.getElementById('tree');
   const panel    = document.getElementById('panel');
   const mlabel   = document.getElementById('mlabel');
+  const searchEl = document.getElementById('search');
   const articles = [...document.querySelectorAll('article')];
   const rows     = [...tree.querySelectorAll('.row')];
-  const countryRows = rows.filter(r => r.classList.contains('c'));
 
-  // ---- filter tree ----
+  // ---- multi-select picker ----
   function applyFilter() {
-    rows.forEach(r => r.classList.toggle('on', r.dataset.f === filter));
-    articles.forEach(a => {
-      const show = filter === 'ALL'
-        || (filter === 'PINNED'        ? pins.includes(a.dataset.code)
-        :   filter.startsWith('R:')    ? a.dataset.region === filter.slice(2)
-        :   a.dataset.code === filter);
-      a.classList.toggle('hideF', !show);
-    });
-    const r = rows.find(r => r.dataset.f === filter);
-    mlabel.textContent = r ? r.dataset.label : 'All';
+    rows.forEach(r => r.classList.toggle('sel', sel.includes(r.dataset.cc)));
+    articles.forEach(a =>
+      a.classList.toggle('hideF', sel.length > 0 && !sel.includes(a.dataset.code)));
+    mlabel.textContent =
+        sel.length === 0 ? 'All'
+      : sel.length === 1 ? rows.find(r => r.dataset.cc === sel[0]).dataset.label
+      : sel.length <= 5  ? sel.map(cc =>
+            rows.find(r => r.dataset.cc === cc).dataset.label.split(' ')[0]).join(' ')
+      : sel.length + ' countries';
+    SV('sel', sel);
   }
   function applyPins() {
-    countryRows.forEach(r => {
-      const pinned = pins.includes(r.dataset.f);
+    rows.forEach(r => {
+      const pinned = pins.includes(r.dataset.cc);
       const s = r.querySelector('.star');
-      if (pinned && !s) r.insertAdjacentHTML('beforeend', '<span class="star">&#9733;</span>');
+      if (pinned && !s)
+        r.querySelector('.ck').insertAdjacentHTML('beforebegin', '<span class="star">&#9733;</span>');
       if (!pinned && s) s.remove();
     });
-    tree.querySelector('[data-f="PINNED"]').classList.toggle('hide', pins.length === 0);
+    document.getElementById('selpins').classList.toggle('hide', pins.length === 0);
   }
   tree.addEventListener('click', e => {
     const r = e.target.closest('.row'); if (!r) return;
-    filter = r.dataset.f; SV('filter', filter);
-    applyFilter(); tree.classList.add('hide');
+    const cc = r.dataset.cc;
+    sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
+    applyFilter();                                  // picker stays open for more picks
   });
-  document.getElementById('menu').onclick = () => {
+  document.getElementById('selall').onclick =
+    () => { sel = []; applyFilter(); tree.classList.add('hide'); };
+  document.getElementById('selpins').onclick =
+    () => { sel = [...pins]; applyFilter(); tree.classList.add('hide'); };
+  searchEl.addEventListener('input', () => {
+    const q = searchEl.value.trim().toLowerCase();
+    rows.forEach(r => r.classList.toggle('hide',
+      !!q && !r.dataset.label.toLowerCase().includes(q)
+          && !r.dataset.cc.toLowerCase().includes(q)));
+    tree.querySelectorAll('.grp').forEach(g =>
+      g.querySelector('.glab').classList.toggle('hide',
+        ![...g.querySelectorAll('.row')].some(r => !r.classList.contains('hide'))));
+  });
+  document.getElementById('menu').onclick = e => {
+    e.stopPropagation();
     panel.classList.add('hide');
     tree.classList.toggle('hide');
-    const on = tree.querySelector('.row.on');
-    const d = on && on.closest('details'); if (d) d.open = true;
+    if (!tree.classList.contains('hide')) {
+      searchEl.value = ''; searchEl.dispatchEvent(new Event('input')); searchEl.focus();
+    }
   };
-  document.getElementById('gear').onclick = () => {
+  document.getElementById('gear').onclick = e => {
+    e.stopPropagation();
     tree.classList.add('hide');
     panel.classList.toggle('hide');
   };
+  document.addEventListener('click', e => {            // click outside closes
+    if (!e.target.closest('header')) {
+      tree.classList.add('hide'); panel.classList.add('hide');
+    }
+  });
 
   // ---- gear panel: pin toggles + mute input ----
   const plist = document.getElementById('pinlist');
-  countryRows.forEach(c => {
+  rows.forEach(c => {
     const s = document.createElement('span');
-    s.className = 'chip' + (pins.includes(c.dataset.f) ? ' on' : '');
+    s.className = 'chip' + (pins.includes(c.dataset.cc) ? ' on' : '');
     s.textContent = c.dataset.label;
     s.onclick = () => {
-      const cc = c.dataset.f;
+      const cc = c.dataset.cc;
       pins = pins.includes(cc) ? pins.filter(x => x !== cc) : [...pins, cc];
       s.classList.toggle('on');
       SV('pins', pins);
-      if (filter === 'PINNED' && pins.length === 0) { filter = 'ALL'; SV('filter', filter); }
-      applyPins(); applyFilter();
+      applyPins();
     };
     plist.appendChild(s);
   });
@@ -363,24 +393,18 @@ __ITEMS__
 </body></html>"""
 
 
-def build_tree():
+def build_picker():
     cmap = {c["cc"]: c for c in COUNTRIES}
-    parts = [
-        '<div class="row" data-f="ALL" data-label="All">All</div>',
-        '<div class="row hide" data-f="PINNED" data-label="&#9733; Pinned">&#9733; Pinned</div>',
-    ]
+    parts = []
     for region, ccs in REGIONS.items():
-        inner = [
-            f'<div class="row" data-f="R:{region}" data-label="{region}">'
-            f'All {region}<span class="n">{len(ccs)}</span></div>'
-        ]
+        parts.append(f'<div class="grp"><div class="glab">{region}</div>')
         for cc in ccs:
             label = f'{cc_flag(cc)} {cmap[cc]["name"]}'
-            inner.append(f'<div class="row c" data-f="{cc}" data-label="{label}">{label}</div>')
-        parts.append(
-            f'<details><summary>{region}<span class="n">{len(ccs)}</span></summary>'
-            f'<div class="grp">{"".join(inner)}</div></details>'
-        )
+            parts.append(
+                f'<div class="row" data-cc="{cc}" data-label="{label}">'
+                f'{label}<span class="ck">&#10003;</span></div>'
+            )
+        parts.append('</div>')
     return "".join(parts)
 
 
@@ -406,7 +430,7 @@ def render(items, health):
     if dead:
         foot += "<br>quiet/dead: " + ", ".join(html.escape(d) for d in dead)
 
-    return (PAGE.replace("__TREE__", build_tree())
+    return (PAGE.replace("__PICKER__", build_picker())
                 .replace("__ITEMS__", "\n".join(rows))
                 .replace("__FOOTER__", foot)
                 .replace("__BUILT__", str(int(time.time()))))
