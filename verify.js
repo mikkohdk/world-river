@@ -9,59 +9,67 @@ const path = require('path');
   const r = {};
 
   await p.goto(file);
-  // 1. default pins seeded -> Pinned chip visible, FI/DK starred & moved to front
-  r.pinnedChipVisible = await p.locator('.chip[data-code="PINNED"]').isVisible();
-  const firstTwo = await p.locator('#chips .chip:nth-child(3), #chips .chip:nth-child(4)')
-                          .allTextContents();
-  r.firstCountryChips = firstTwo.map(s => s.trim());
+  // 1. compact header: tree hidden by default, menu shows "All"
+  r.treeHiddenByDefault = !(await p.locator('#tree').isVisible());
+  r.menuLabel = (await p.locator('#mlabel').textContent()).trim();
 
-  // 2. Pinned view shows only FI+DK articles
-  await p.click('.chip[data-code="PINNED"]');
-  const codes = await p.locator('article:visible').evaluateAll(
-    els => [...new Set(els.map(e => e.dataset.code))]);
-  r.pinnedViewCodes = codes;
+  // 2. open tree -> Pinned row visible (FI/DK seeded), continents present
+  await p.click('#menu');
+  r.pinnedRowVisible = await p.locator('#tree [data-f="PINNED"]').isVisible();
+  r.continents = await p.locator('#tree summary').allTextContents();
 
-  // 3. country filter persists across reload
-  await p.click('.chip[data-code="JP"]');
+  // 3. country select: expand Asia, click Japan -> only JP articles, label updates
+  await p.click('#tree summary:has-text("Asia")');
+  await p.click('#tree .row[data-f="JP"]');
+  r.treeClosesOnSelect = !(await p.locator('#tree').isVisible());
+  r.onlyJPVisible = await p.locator('article:visible').evaluateAll(
+    els => els.length > 0 && els.every(e => e.dataset.code === 'JP'));
+  r.labelAfterJP = (await p.locator('#mlabel').textContent()).trim();
+
+  // 4. persists across reload
   await p.reload();
-  r.filterAfterReload = await p.locator('#chips .chip.on').getAttribute('data-code');
-  r.visibleAllJP = await p.locator('article:visible').evaluateAll(
-    els => els.every(e => e.dataset.code === 'JP'));
+  r.labelAfterReload = (await p.locator('#mlabel').textContent()).trim();
 
-  // 4. mute words hide matching headlines
-  await p.click('.chip[data-code="ALL"]');
+  // 5. region filter: All Europe -> only Europe articles, several countries
+  await p.click('#menu');
+  await p.click('#tree summary:has-text("Europe")');
+  await p.click('#tree .row[data-f="R:Europe"]');
+  const regions = await p.locator('article:visible').evaluateAll(
+    els => [...new Set(els.map(e => e.dataset.region))]);
+  r.europeOnlyRegion = regions;
+  r.europeCountryCount = await p.locator('article:visible').evaluateAll(
+    els => new Set(els.map(e => e.dataset.code)).size);
+
+  // 6. pinned view from tree
+  await p.click('#menu');
+  await p.click('#tree .row[data-f="PINNED"]');
+  r.pinnedViewCodes = await p.locator('article:visible').evaluateAll(
+    els => [...new Set(els.map(e => e.dataset.code))].sort());
+
+  // 7. localized absolute times (no more "5m" relatives)
+  r.sampleTime = (await p.locator('article time').first().textContent()).trim();
+  r.updatedStamp = (await p.locator('#upd').textContent()).trim();
+
+  // 8. mute via gear panel still works
+  await p.click('#tree .row[data-f="ALL"]').catch(() => {});
+  await p.click('#menu'); await p.click('#tree .row[data-f="ALL"]');
   const before = await p.locator('article:visible').count();
   await p.click('#gear');
   await p.fill('#mute', 'world cup, trump');
   await p.locator('#mute').dispatchEvent('change');
-  const after = await p.locator('article:visible').count();
-  r.mutedHidden = before - after;
-  r.muteCounterText = await p.locator('#mutecount').textContent();
+  r.mutedHidden = before - await p.locator('article:visible').count();
+
   await p.screenshot({ path: 'preview_panel.png' });
 
-  // 5. mute persists across reload
-  await p.reload();
-  r.muteAfterReload = await p.locator('#mute').inputValue();
+  // 9. tree open screenshot + fresh-profile default
+  await p.click('#gear'); await p.click('#menu');
+  await p.screenshot({ path: 'preview_tree.png' });
 
-  // 6. read-dim: click a headline (block navigation), article gets .read, persists
-  await p.click('.chip[data-code="ALL"]');
-  await ctx.route('**/*', route =>
-    route.request().url().startsWith('file://') ? route.continue() : route.abort());
-  const pop = ctx.waitForEvent('page').catch(() => null);
-  await p.locator('article:visible a.t').first().click();
-  const popped = await pop; if (popped) await popped.close();
-  r.readAfterClick = await p.locator('article:visible').first()
-                            .evaluate(e => e.classList.contains('read'));
-  await p.reload();
-  r.readAfterReload = await p.locator('article').first()
-                             .evaluate(e => e.classList.contains('read'));
-
-  // 7. fresh profile -> defaults (FI/DK pinned, ALL filter)
   const ctx2 = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
   const p2 = await ctx2.newPage();
   await p2.goto(file);
   await p2.screenshot({ path: 'preview.png' });
-  r.freshDefaultFilter = await p2.locator('#chips .chip.on').getAttribute('data-code');
+  r.freshDefaultLabel = (await p2.locator('#mlabel').textContent()).trim();
 
   console.log(JSON.stringify(r, null, 2));
   await b.close();

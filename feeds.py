@@ -154,3 +154,15 @@ COUNTRIES = [
 def flag(cc):
     """ISO-2 country code -> regional-indicator flag emoji."""
     return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in cc.upper())
+
+
+# Continent grouping for the selection tree (order = display order).
+REGIONS = {
+    "Europe":      ["GB", "IE", "FR", "DE", "NL", "IT", "PT", "FI", "SE", "DK", "PL", "HU", "UA", "RU"],
+    "Asia":        ["IN", "PK", "BD", "NP", "JP", "KR", "CN", "TW", "HK", "SG", "MY", "VN", "PH"],
+    "Middle East": ["IL", "IR", "EG"],
+    "Africa":      ["NG", "KE", "GH", "ZW"],
+    "Americas":    ["US", "CA", "MX", "BR", "AR"],
+    "Oceania":     ["AU", "NZ", "FJ"],
+}
+REGION_OF = {cc: r for r, ccs in REGIONS.items() for cc in ccs}

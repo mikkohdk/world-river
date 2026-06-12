@@ -9,7 +9,8 @@ no server, no API keys, one static file you can open or schedule.
 
 Personalization is client-side (localStorage), so it survives rebuilds:
 pinned countries, sticky filter, read-dimming, new-since-last-visit dots,
-muted words (via the gear panel).
+muted words (gear panel). Country selection is a continent->country tree
+behind the filter button; times are rendered in the visitor's own timezone.
 """
 import re
 import sys
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 import requests
 import feedparser
 
-from feeds import COUNTRIES, flag as cc_flag
+from feeds import COUNTRIES, REGIONS, REGION_OF, flag as cc_flag
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -80,21 +81,11 @@ def fetch_source(country, source_name, url):
             "source": source_name,
             "country": country["name"],
             "code": country["cc"],
+            "region": REGION_OF[country["cc"]],
             "flag": cc_flag(country["cc"]),
             "ts": ts,
         })
     return items, f"OK ({len(items)})"
-
-
-def relative(ts, now):
-    if ts is None:
-        return ""
-    secs = max(0, now - ts)
-    if secs < 3600:
-        return f"{secs // 60}m"
-    if secs < 86400:
-        return f"{secs // 3600}h"
-    return f"{secs // 86400}d"
 
 
 def _recency_key(x):
@@ -133,7 +124,7 @@ def gather():
 
 
 # ---------------------------------------------------------------- rendering
-# Token-replaced (__CHIPS__ etc.), not str.format — the JS is full of braces.
+# Token-replaced (__TREE__ etc.), not str.format — the JS is full of braces.
 
 PAGE = """<!doctype html>
 <html lang="en"><head>
@@ -150,36 +141,64 @@ PAGE = """<!doctype html>
     font:16px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif;
   }
   header {
-    position:sticky; top:0; background:rgba(250,249,247,.92);
+    position:sticky; top:0; background:rgba(250,249,247,.94);
     backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
-    padding:18px 24px 14px; z-index:10;
+    padding:14px 24px; z-index:10;
   }
   .wrap { max-width:720px; margin:0 auto; }
-  .hrow { display:flex; align-items:center; margin:0 0 12px; }
+  .hrow { display:flex; align-items:center; gap:10px; }
   h1 { font:600 15px/1 -apple-system,sans-serif; letter-spacing:.14em;
        text-transform:uppercase; color:var(--meta); margin:0; }
-  #gear { margin-left:auto; border:none; background:none; cursor:pointer;
-          font-size:17px; color:var(--meta); padding:2px 4px; }
-  #gear:hover { color:var(--ink); }
-  .chips { display:flex; flex-wrap:wrap; gap:7px; }
-  .chip {
-    border:1px solid var(--line); background:#fff; color:var(--ink);
-    border-radius:999px; padding:5px 12px; font-size:13px; cursor:pointer;
-    user-select:none; transition:.12s;
+  #upd { font-size:12px; color:var(--meta); }
+  #menu {
+    margin-left:auto; border:1px solid var(--line); background:#fff;
+    color:var(--ink); border-radius:999px; padding:6px 14px; font-size:13px;
+    cursor:pointer; display:flex; gap:7px; align-items:center;
   }
-  .chip:hover { border-color:#d8d4cc; }
-  .chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
-  .chip.pinned::after { content:" ★"; font-size:10px; color:var(--accent); }
-  .chip.on.pinned::after { color:#fff; }
-  #panel { border-top:1px solid var(--line); margin-top:14px; padding-top:14px; }
+  #menu:hover { border-color:#d8d4cc; }
+  #menu .car { font-size:10px; color:var(--meta); }
+  #gear { border:none; background:none; cursor:pointer; font-size:17px;
+          color:var(--meta); padding:2px 4px; }
+  #gear:hover { color:var(--ink); }
+
+  /* selection tree */
+  #tree { border-top:1px solid var(--line); margin-top:13px; padding-top:8px;
+          max-height:60vh; overflow:auto; }
+  #tree .row { padding:7px 10px; border-radius:8px; cursor:pointer;
+               font-size:14.5px; display:flex; align-items:center; gap:8px; }
+  #tree .row:hover { background:#f1efe9; }
+  #tree .row.on { background:var(--ink); color:#fff; }
+  #tree .row.on .n, #tree .row.on .star { color:#fff; }
+  #tree summary { list-style:none; cursor:pointer; padding:7px 10px;
+                  border-radius:8px; font-size:14.5px; display:flex;
+                  align-items:center; gap:8px; user-select:none; }
+  #tree summary::-webkit-details-marker { display:none; }
+  #tree summary::after { content:"\\25B8"; margin-left:auto; font-size:11px;
+                         color:var(--meta); transition:.15s; }
+  #tree details[open] summary::after { transform:rotate(90deg); }
+  #tree summary:hover { background:#f1efe9; }
+  #tree .grp { margin-left:14px; }
+  .n { color:var(--meta); font-size:12px; }
+  .star { margin-left:auto; color:var(--accent); font-size:11px; }
+
+  /* gear panel */
+  #panel { border-top:1px solid var(--line); margin-top:13px; padding-top:14px; }
   #panel h2 { font:600 11px/1 -apple-system,sans-serif; letter-spacing:.12em;
               text-transform:uppercase; color:var(--meta); margin:0 0 8px; }
   #panel .sec { margin-bottom:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:7px; }
+  .chip { border:1px solid var(--line); background:#fff; color:var(--ink);
+          border-radius:999px; padding:5px 12px; font-size:13px; cursor:pointer;
+          user-select:none; transition:.12s; }
+  .chip:hover { border-color:#d8d4cc; }
+  .chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
   #mute { width:100%; border:1px solid var(--line); border-radius:8px;
           padding:7px 10px; font:14px -apple-system,"Segoe UI",sans-serif;
           background:#fff; color:var(--ink); outline:none; }
   #mute:focus { border-color:#c9c4ba; }
   #mutecount { font-size:12px; color:var(--meta); margin-top:6px; }
+
+  /* river */
   main { max-width:720px; margin:0 auto; padding:8px 24px 80px; }
   article { padding:20px 0; border-bottom:1px solid var(--line); }
   article.read { opacity:.45; }
@@ -202,9 +221,12 @@ PAGE = """<!doctype html>
 </style></head>
 <body>
 <header><div class="wrap">
-  <div class="hrow"><h1>World River</h1>
-    <button id="gear" title="Personalize">&#9881;</button></div>
-  <div class="chips" id="chips">__CHIPS__</div>
+  <div class="hrow">
+    <h1>World River</h1><span id="upd" data-ts="__BUILT__"></span>
+    <button id="menu"><span id="mlabel">All</span><span class="car">&#9660;</span></button>
+    <button id="gear" title="Personalize">&#9881;</button>
+  </div>
+  <div id="tree" class="hide">__TREE__</div>
   <div id="panel" class="hide">
     <div class="sec"><h2>Pinned countries</h2>
       <div class="chips" id="pinlist"></div></div>
@@ -230,19 +252,59 @@ __ITEMS__
   const prevVisit = LS('visit') ?? 0;
   SV('visit', Math.floor(Date.now()/1000));
 
-  const chipsEl  = document.getElementById('chips');
+  const tree     = document.getElementById('tree');
+  const panel    = document.getElementById('panel');
+  const mlabel   = document.getElementById('mlabel');
   const articles = [...document.querySelectorAll('article')];
-  const countryChips = [...chipsEl.querySelectorAll('.chip')]
-        .filter(c => c.dataset.code !== 'ALL' && c.dataset.code !== 'PINNED');
+  const rows     = [...tree.querySelectorAll('.row')];
+  const countryRows = rows.filter(r => r.classList.contains('c'));
 
-  // ---- panel: pin toggles (built from initial chip order) + mute input ----
+  // ---- filter tree ----
+  function applyFilter() {
+    rows.forEach(r => r.classList.toggle('on', r.dataset.f === filter));
+    articles.forEach(a => {
+      const show = filter === 'ALL'
+        || (filter === 'PINNED'        ? pins.includes(a.dataset.code)
+        :   filter.startsWith('R:')    ? a.dataset.region === filter.slice(2)
+        :   a.dataset.code === filter);
+      a.classList.toggle('hideF', !show);
+    });
+    const r = rows.find(r => r.dataset.f === filter);
+    mlabel.textContent = r ? r.dataset.label : 'All';
+  }
+  function applyPins() {
+    countryRows.forEach(r => {
+      const pinned = pins.includes(r.dataset.f);
+      const s = r.querySelector('.star');
+      if (pinned && !s) r.insertAdjacentHTML('beforeend', '<span class="star">&#9733;</span>');
+      if (!pinned && s) s.remove();
+    });
+    tree.querySelector('[data-f="PINNED"]').classList.toggle('hide', pins.length === 0);
+  }
+  tree.addEventListener('click', e => {
+    const r = e.target.closest('.row'); if (!r) return;
+    filter = r.dataset.f; SV('filter', filter);
+    applyFilter(); tree.classList.add('hide');
+  });
+  document.getElementById('menu').onclick = () => {
+    panel.classList.add('hide');
+    tree.classList.toggle('hide');
+    const on = tree.querySelector('.row.on');
+    const d = on && on.closest('details'); if (d) d.open = true;
+  };
+  document.getElementById('gear').onclick = () => {
+    tree.classList.add('hide');
+    panel.classList.toggle('hide');
+  };
+
+  // ---- gear panel: pin toggles + mute input ----
   const plist = document.getElementById('pinlist');
-  countryChips.forEach(c => {
+  countryRows.forEach(c => {
     const s = document.createElement('span');
-    s.className = 'chip' + (pins.includes(c.dataset.code) ? ' on' : '');
-    s.textContent = c.textContent;
+    s.className = 'chip' + (pins.includes(c.dataset.f) ? ' on' : '');
+    s.textContent = c.dataset.label;
     s.onclick = () => {
-      const cc = c.dataset.code;
+      const cc = c.dataset.f;
       pins = pins.includes(cc) ? pins.filter(x => x !== cc) : [...pins, cc];
       s.classList.toggle('on');
       SV('pins', pins);
@@ -257,29 +319,6 @@ __ITEMS__
     muted = muteEl.value.split(',').map(w => w.trim().toLowerCase()).filter(Boolean);
     SV('muted', muted); applyMute();
   });
-  document.getElementById('gear').onclick =
-    () => document.getElementById('panel').classList.toggle('hide');
-
-  // ---- behaviors ----
-  function applyPins() {
-    countryChips
-      .slice()
-      .sort((a, b) => pins.includes(b.dataset.code) - pins.includes(a.dataset.code))
-      .forEach(c => {
-        c.classList.toggle('pinned', pins.includes(c.dataset.code));
-        chipsEl.appendChild(c);
-      });
-    chipsEl.querySelector('[data-code="PINNED"]')
-           .classList.toggle('hide', pins.length === 0);
-  }
-  function applyFilter() {
-    [...chipsEl.children].forEach(c => c.classList.toggle('on', c.dataset.code === filter));
-    articles.forEach(a => {
-      const show = filter === 'ALL'
-        || (filter === 'PINNED' ? pins.includes(a.dataset.code) : a.dataset.code === filter);
-      a.classList.toggle('hideF', !show);
-    });
-  }
   function applyMute() {
     let n = 0;
     articles.forEach(a => {
@@ -291,18 +330,12 @@ __ITEMS__
       muted.length ? n + ' headlines muted' : '';
   }
 
-  chipsEl.addEventListener('click', e => {
-    const chip = e.target.closest('.chip'); if (!chip) return;
-    filter = chip.dataset.code; SV('filter', filter);
-    applyFilter();
-  });
+  // ---- read-dim + new-dots ----
   document.getElementById('feed').addEventListener('click', e => {
     const l = e.target.closest('a.t'); if (!l) return;
     read.add(l.href); SV('read', [...read].slice(-500));
     l.closest('article').classList.add('read');
   });
-
-  // read-dim + new-since-last-visit dots
   articles.forEach(a => {
     if (read.has(a.querySelector('a.t').href)) a.classList.add('read');
     const ts = +a.dataset.ts || 0;
@@ -310,30 +343,56 @@ __ITEMS__
       a.querySelector('time').insertAdjacentHTML('beforebegin', '<span class="nd"></span>');
   });
 
+  // ---- times in the visitor's own timezone (browser locale + tz) ----
+  const fmtT = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+  const fmtD = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' });
+  const today = new Date().toDateString();
+  articles.forEach(a => {
+    const ts = +a.dataset.ts, t = a.querySelector('time');
+    if (!ts) { t.textContent = ''; return; }
+    const d = new Date(ts * 1000);
+    t.textContent = d.toDateString() === today
+      ? fmtT.format(d) : fmtD.format(d) + ' ' + fmtT.format(d);
+    t.title = d.toLocaleString();
+  });
+  const upd = document.getElementById('upd');
+  upd.textContent = 'updated ' + fmtT.format(new Date(+upd.dataset.ts * 1000));
+
   applyPins(); applyFilter(); applyMute();
 </script>
 </body></html>"""
 
 
+def build_tree():
+    cmap = {c["cc"]: c for c in COUNTRIES}
+    parts = [
+        '<div class="row" data-f="ALL" data-label="All">All</div>',
+        '<div class="row hide" data-f="PINNED" data-label="&#9733; Pinned">&#9733; Pinned</div>',
+    ]
+    for region, ccs in REGIONS.items():
+        inner = [
+            f'<div class="row" data-f="R:{region}" data-label="{region}">'
+            f'All {region}<span class="n">{len(ccs)}</span></div>'
+        ]
+        for cc in ccs:
+            label = f'{cc_flag(cc)} {cmap[cc]["name"]}'
+            inner.append(f'<div class="row c" data-f="{cc}" data-label="{label}">{label}</div>')
+        parts.append(
+            f'<details><summary>{region}<span class="n">{len(ccs)}</span></summary>'
+            f'<div class="grp">{"".join(inner)}</div></details>'
+        )
+    return "".join(parts)
+
+
 def render(items, health):
-    now = int(time.time())
-
-    codes = [("ALL", "All"), ("PINNED", "★ Pinned")] \
-          + [(c["cc"], cc_flag(c["cc"]) + " " + c["cc"]) for c in COUNTRIES]
-    chips = "".join(
-        f'<span class="chip{" hide" if code == "PINNED" else ""}" '
-        f'data-code="{code}">{html.escape(label)}</span>'
-        for code, label in codes
-    )
-
     rows = []
     for it in items:
         rows.append(
-            f'<article data-code="{it["code"]}" data-ts="{it["ts"] or 0}">'
+            f'<article data-code="{it["code"]}" data-region="{it["region"]}" data-ts="{it["ts"] or 0}">'
             f'<div class="m"><span class="flag">{it["flag"]}</span>'
             f'<span>{html.escape(it["country"])}</span><span class="dot">·</span>'
             f'<span>{html.escape(it["source"])}</span>'
-            f'<time>{relative(it["ts"], now)}</time></div>'
+            f'<time></time></div>'
             f'<a class="t" href="{html.escape(it["link"])}" target="_blank" rel="noopener">'
             f'{html.escape(it["title"])}</a>'
             + (f'<p class="d">{html.escape(it["summary"])}</p>' if it.get("summary") else "")
@@ -347,9 +406,10 @@ def render(items, health):
     if dead:
         foot += "<br>quiet/dead: " + ", ".join(html.escape(d) for d in dead)
 
-    return (PAGE.replace("__CHIPS__", chips)
+    return (PAGE.replace("__TREE__", build_tree())
                 .replace("__ITEMS__", "\n".join(rows))
-                .replace("__FOOTER__", foot))
+                .replace("__FOOTER__", foot)
+                .replace("__BUILT__", str(int(time.time()))))
 
 
 def main():
