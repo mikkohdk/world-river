@@ -57,9 +57,6 @@ COUNTRIES = [
     {"cc": "HU", "name": "Hungary", "sources": [
         ("Daily News Hungary","https://dailynewshungary.com/feed/"),
     ]},
-    {"cc": "BA", "name": "Bosnia", "sources": [
-        ("N1",                "https://n1info.ba/english/feed/"),
-    ]},
     {"cc": "UA", "name": "Ukraine", "sources": [
         ("The New Voice",     "https://english.nv.ua/rss/all.xml"),
         ("Ukrinform",         "https://www.ukrinform.net/rss/block-lastnews"),
@@ -161,7 +158,7 @@ def flag(cc):
 
 # Continent grouping for the selection tree (order = display order).
 REGIONS = {
-    "Europe":      ["GB", "IE", "FR", "DE", "NL", "IT", "PT", "FI", "SE", "DK", "PL", "HU", "BA", "UA", "RU"],
+    "Europe":      ["GB", "IE", "FR", "DE", "NL", "IT", "PT", "FI", "SE", "DK", "PL", "HU", "UA", "RU"],
     "Asia":        ["IN", "PK", "BD", "NP", "JP", "KR", "CN", "TW", "HK", "SG", "MY", "VN", "PH"],
     "Middle East": ["IL", "IR", "EG"],
     "Africa":      ["NG", "KE", "GH", "ZW"],
