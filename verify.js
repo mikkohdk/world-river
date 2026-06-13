@@ -19,7 +19,7 @@ const path = require('path');
   await p.click('#tree .row[data-cc="BR"]');
   r.visibleCodes = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
-  r.labelThree = (await p.locator('#mlabel').textContent()).trim();
+  r.labelThree = (await p.locator('#mlabel').textContent()).trim();   // names, joined
   r.checkedRows = await p.locator('#tree .row.sel').count();
 
   // 2. click outside closes; selection persists across reload

@@ -23,7 +23,8 @@ from datetime import datetime, timezone
 import requests
 import feedparser
 
-from feeds import COUNTRIES, REGIONS, REGION_OF, flag as cc_flag
+# feeds.flag() (cc -> emoji) is intentionally left in feeds.py for future use.
+from feeds import COUNTRIES, REGIONS, REGION_OF
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -82,7 +83,6 @@ def fetch_source(country, source_name, url):
             "country": country["name"],
             "code": country["cc"],
             "region": REGION_OF.get(country["cc"], "Other"),
-            "flag": cc_flag(country["cc"]),
             "ts": ts,
         })
     return items, f"OK ({len(items)})"
@@ -131,34 +131,6 @@ PAGE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>World River</title>
-<script>
-  // Windows (and bare Linux) render flag emoji as 2 letters, not flags.
-  // Detect that and, only then, swap in a flag-only webfont scoped to flag
-  // codepoints — so Mac/iOS/Android keep their native flags and load nothing.
-  (function () {
-    function flagsRender() {
-      try {
-        var c = document.createElement('canvas'); c.width = c.height = 16;
-        var x = c.getContext('2d'); x.textBaseline = 'top'; x.font = '16px sans-serif';
-        x.fillText('🇬🇧', 0, 0);          // GB flag
-        var d = x.getImageData(0, 0, 16, 16).data;
-        for (var i = 0; i < d.length; i += 4)
-          if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) return true;  // color => real flag
-        return false;
-      } catch (e) { return true; }
-    }
-    if (!flagsRender()) {
-      var s = document.createElement('style');
-      s.textContent =
-        '@font-face{font-family:"Twemoji Country Flags";font-display:swap;' +
-        'unicode-range:U+1F1E6-1F1FF;src:url("TwemojiCountryFlags.woff2") format("woff2")}' +
-        // !important: this <style> is injected before the main one parses, so the
-        // main `body{font:...}` shorthand would otherwise reset font-family.
-        'body{font-family:"Twemoji Country Flags",-apple-system,"Segoe UI",Roboto,sans-serif!important}';
-      document.head.appendChild(s);
-    }
-  })();
-</script>
 <style>
   :root {
     --bg:#faf9f7; --ink:#1d1d1f; --meta:#9a958c; --line:#eceae5; --accent:#3a6ea5;
@@ -231,7 +203,6 @@ PAGE = """<!doctype html>
   article.read { opacity:.45; }
   .m { font-size:12.5px; color:var(--meta); margin-bottom:6px;
        display:flex; gap:8px; align-items:center; }
-  .m .flag { font-size:14px; }
   .m .dot { opacity:.5; }
   .m time { margin-left:auto; }
   .nd { width:6px; height:6px; border-radius:50%; background:var(--accent);
@@ -300,11 +271,11 @@ __ITEMS__
     rows.forEach(r => r.classList.toggle('sel', sel.includes(r.dataset.cc)));
     articles.forEach(a =>
       a.classList.toggle('hideF', sel.length > 0 && !sel.includes(a.dataset.code)));
+    const nameOf = cc => rows.find(r => r.dataset.cc === cc).dataset.label;
     mlabel.textContent =
         sel.length === 0 ? 'All'
-      : sel.length === 1 ? rows.find(r => r.dataset.cc === sel[0]).dataset.label
-      : sel.length <= 5  ? sel.map(cc =>
-            rows.find(r => r.dataset.cc === cc).dataset.label.split(' ')[0]).join(' ')
+      : sel.length === 1 ? nameOf(sel[0])
+      : sel.length <= 3  ? sel.map(nameOf).join(', ')
       : sel.length + ' countries';
     SV('sel', sel);
   }
@@ -436,7 +407,7 @@ def build_picker():
             continue
         parts.append(f'<div class="grp"><div class="glab">{region}</div>')
         for cc in ccs:
-            label = f'{cc_flag(cc)} {cmap[cc]["name"]}'
+            label = cmap[cc]["name"]
             parts.append(
                 f'<div class="row" data-cc="{cc}" data-label="{label}">'
                 f'{label}<span class="ck">&#10003;</span></div>'
@@ -450,7 +421,7 @@ def render(items, health):
     for it in items:
         rows.append(
             f'<article data-code="{it["code"]}" data-region="{it["region"]}" data-ts="{it["ts"] or 0}">'
-            f'<div class="m"><span class="flag">{it["flag"]}</span>'
+            f'<div class="m">'
             f'<span>{html.escape(it["country"])}</span><span class="dot">·</span>'
             f'<span>{html.escape(it["source"])}</span>'
             f'<time></time></div>'
