@@ -81,7 +81,7 @@ def fetch_source(country, source_name, url):
             "source": source_name,
             "country": country["name"],
             "code": country["cc"],
-            "region": REGION_OF[country["cc"]],
+            "region": REGION_OF.get(country["cc"], "Other"),
             "flag": cc_flag(country["cc"]),
             "ts": ts,
         })
@@ -131,6 +131,34 @@ PAGE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>World River</title>
+<script>
+  // Windows (and bare Linux) render flag emoji as 2 letters, not flags.
+  // Detect that and, only then, swap in a flag-only webfont scoped to flag
+  // codepoints — so Mac/iOS/Android keep their native flags and load nothing.
+  (function () {
+    function flagsRender() {
+      try {
+        var c = document.createElement('canvas'); c.width = c.height = 16;
+        var x = c.getContext('2d'); x.textBaseline = 'top'; x.font = '16px sans-serif';
+        x.fillText('🇬🇧', 0, 0);          // GB flag
+        var d = x.getImageData(0, 0, 16, 16).data;
+        for (var i = 0; i < d.length; i += 4)
+          if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) return true;  // color => real flag
+        return false;
+      } catch (e) { return true; }
+    }
+    if (!flagsRender()) {
+      var s = document.createElement('style');
+      s.textContent =
+        '@font-face{font-family:"Twemoji Country Flags";font-display:swap;' +
+        'unicode-range:U+1F1E6-1F1FF;src:url("TwemojiCountryFlags.woff2") format("woff2")}' +
+        // !important: this <style> is injected before the main one parses, so the
+        // main `body{font:...}` shorthand would otherwise reset font-family.
+        'body{font-family:"Twemoji Country Flags",-apple-system,"Segoe UI",Roboto,sans-serif!important}';
+      document.head.appendChild(s);
+    }
+  })();
+</script>
 <style>
   :root {
     --bg:#faf9f7; --ink:#1d1d1f; --meta:#9a958c; --line:#eceae5; --accent:#3a6ea5;
@@ -395,8 +423,17 @@ __ITEMS__
 
 def build_picker():
     cmap = {c["cc"]: c for c in COUNTRIES}
+    # Continents from REGIONS, plus an "Other" bucket for any country not yet
+    # mapped — so adding a country to COUNTRIES alone always works.
+    groups = {r: [cc for cc in ccs if cc in cmap] for r, ccs in REGIONS.items()}
+    leftover = [c["cc"] for c in COUNTRIES if c["cc"] not in REGION_OF]
+    if leftover:
+        groups["Other"] = leftover
+
     parts = []
-    for region, ccs in REGIONS.items():
+    for region, ccs in groups.items():
+        if not ccs:
+            continue
         parts.append(f'<div class="grp"><div class="glab">{region}</div>')
         for cc in ccs:
             label = f'{cc_flag(cc)} {cmap[cc]["name"]}'
