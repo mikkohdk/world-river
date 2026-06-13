@@ -150,16 +150,12 @@ PAGE = """<!doctype html>
   h1 { font:600 15px/1 -apple-system,sans-serif; letter-spacing:.14em;
        text-transform:uppercase; color:var(--meta); margin:0; }
   #upd { font-size:12px; color:var(--meta); }
-  #menu {
-    margin-left:auto; border:1px solid var(--line); background:#fff;
-    color:var(--ink); border-radius:999px; padding:6px 14px; font-size:13px;
-    cursor:pointer; display:flex; gap:7px; align-items:center;
-  }
+  #mlabel { margin-left:auto; font-size:13px; color:var(--meta);
+            max-width:55%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  #menu { margin-left:10px; border:1px solid var(--line); background:#fff;
+          color:var(--ink); border-radius:9px; padding:5px 7px; cursor:pointer;
+          display:flex; align-items:center; }
   #menu:hover { border-color:#d8d4cc; }
-  #menu .car { font-size:10px; color:var(--meta); }
-  #gear { border:none; background:none; cursor:pointer; font-size:17px;
-          color:var(--meta); padding:2px 4px; }
-  #gear:hover { color:var(--ink); }
 
   /* country picker (multi-select: click rows to toggle, stays open) */
   #tree { border-top:1px solid var(--line); margin-top:13px; padding-top:12px;
@@ -186,18 +182,18 @@ PAGE = """<!doctype html>
   #tree .gsel:empty { display:none; }
   #tree .rows { padding-bottom:6px; }
   #tree .row { padding:7px 10px 7px 26px; border-radius:8px; cursor:pointer;
-               font-size:14.5px; display:flex; align-items:center; gap:8px; }
+               font-size:14.5px; display:flex; align-items:center; gap:6px; }
   #tree .row:hover { background:#f1efe9; }
-  #tree .row .ck { margin-left:auto; color:var(--accent); font-weight:600;
-                   visibility:hidden; }
+  #tree .row .nm { flex:1; }
+  #tree .row .pin { border:none; background:none; cursor:pointer; padding:0 4px;
+                    font-size:13px; line-height:1; color:#d3cec4; }
+  #tree .row .pin:hover { color:var(--accent); }
+  #tree .row.pinned .pin { color:var(--accent); }
+  #tree .row .ck { width:14px; text-align:center; color:var(--accent);
+                   font-weight:600; visibility:hidden; }
   #tree .row.sel .ck { visibility:visible; }
-  .star { color:var(--accent); font-size:11px; }
 
-  /* gear panel */
-  #panel { border-top:1px solid var(--line); margin-top:13px; padding-top:14px; }
-  #panel h2 { font:600 11px/1 -apple-system,sans-serif; letter-spacing:.12em;
-              text-transform:uppercase; color:var(--meta); margin:0 0 8px; }
-  #panel .sec { margin-bottom:14px; }
+  /* quick-action chips + muted-words setting */
   .chips { display:flex; flex-wrap:wrap; gap:7px; }
   .chip { border:1px solid var(--line); background:#fff; color:var(--ink);
           border-radius:999px; padding:5px 12px; font-size:13px; cursor:pointer;
@@ -234,28 +230,29 @@ PAGE = """<!doctype html>
 <header><div class="wrap">
   <div class="hrow">
     <h1>World River</h1><span id="upd" data-ts="__BUILT__"></span>
-    <button id="menu"><span id="mlabel">All</span><span class="car">&#9660;</span></button>
-    <button id="gear" title="Personalize">&#9881;</button>
+    <span id="mlabel">All</span>
+    <button id="menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20"
+      aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor"
+      stroke-width="1.7" stroke-linecap="round"/></svg></button>
   </div>
   <div id="tree" class="hide">
     <input id="search" placeholder="Search countries&hellip;">
     <div class="acts"><span class="chip" id="selall">All countries</span><span
       class="chip hide" id="selpins">&#9733; Pinned</span></div>
     __PICKER__
-  </div>
-  <div id="panel" class="hide">
-    <div class="sec"><h2>Pinned countries</h2>
-      <div class="chips" id="pinlist"></div></div>
-    <div class="sec"><h2>Muted words</h2>
-      <input id="mute" placeholder="comma-separated, e.g. world cup, royals">
-      <div id="mutecount"></div></div>
+    <details class="grp" id="setgrp"><summary>Muted words<span class="gsel" id="mutebadge"></span></summary>
+      <div class="rows" style="padding:4px 10px 10px">
+        <input id="mute" placeholder="comma-separated, e.g. world cup, royals">
+        <div id="mutecount"></div>
+      </div>
+    </details>
   </div>
 </div></header>
 <main id="feed">
 __ITEMS__
 </main>
 <footer>__FOOTER__<br>
-&#9881; pin countries &amp; mute words &middot; clicked headlines dim &middot;
+&#9776; menu: pick countries, pin (&#9733;) &amp; mute words &middot; clicked headlines dim &middot;
 <span style="color:var(--accent)">&#9679;</span> = new since your last visit</footer>
 <script>
   const LS = k => { try { return JSON.parse(localStorage.getItem('wr:'+k)); } catch(e){ return null; } };
@@ -273,12 +270,12 @@ __ITEMS__
   SV('visit', Math.floor(Date.now()/1000));
 
   const tree     = document.getElementById('tree');
-  const panel    = document.getElementById('panel');
   const mlabel   = document.getElementById('mlabel');
   const searchEl = document.getElementById('search');
   const articles = [...document.querySelectorAll('article')];
   const rows     = [...tree.querySelectorAll('.row')];
-  const groups   = [...tree.querySelectorAll('.grp')];
+  const groups   = [...tree.querySelectorAll('.grp[data-region]')];   // continents only
+  const setgrp   = document.getElementById('setgrp');
 
   // ---- multi-select picker ----
   function applyFilter() {
@@ -298,18 +295,17 @@ __ITEMS__
     SV('sel', sel);
   }
   function applyPins() {
-    rows.forEach(r => {
-      const pinned = pins.includes(r.dataset.cc);
-      const s = r.querySelector('.star');
-      if (pinned && !s)
-        r.querySelector('.ck').insertAdjacentHTML('beforebegin', '<span class="star">&#9733;</span>');
-      if (!pinned && s) s.remove();
-    });
+    rows.forEach(r => r.classList.toggle('pinned', pins.includes(r.dataset.cc)));
     document.getElementById('selpins').classList.toggle('hide', pins.length === 0);
   }
   tree.addEventListener('click', e => {
     const r = e.target.closest('.row'); if (!r) return;
     const cc = r.dataset.cc;
+    if (e.target.closest('.pin')) {                 // star toggles PIN, not selection
+      pins = pins.includes(cc) ? pins.filter(x => x !== cc) : [...pins, cc];
+      SV('pins', pins); applyPins();
+      return;
+    }
     sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
     applyFilter();                                  // picker stays open for more picks
   });
@@ -327,6 +323,7 @@ __ITEMS__
       g.classList.toggle('hide', !!q && !hasMatch);
       if (q) g.open = hasMatch;                        // searching expands matches
     });
+    setgrp.classList.toggle('hide', !!q);              // hide settings while searching
   });
   // open the picker: collapse all continents, expand only those with a pick
   function resetPicker() {
@@ -336,39 +333,18 @@ __ITEMS__
       g.classList.remove('hide');
       g.open = [...g.querySelectorAll('.row')].some(r => r.classList.contains('sel'));
     });
+    setgrp.classList.remove('hide'); setgrp.open = false;
   }
   document.getElementById('menu').onclick = e => {
     e.stopPropagation();
-    panel.classList.add('hide');
     tree.classList.toggle('hide');
     if (!tree.classList.contains('hide')) { resetPicker(); searchEl.focus(); }
   };
-  document.getElementById('gear').onclick = e => {
-    e.stopPropagation();
-    tree.classList.add('hide');
-    panel.classList.toggle('hide');
-  };
   document.addEventListener('click', e => {            // click outside closes
-    if (!e.target.closest('header')) {
-      tree.classList.add('hide'); panel.classList.add('hide');
-    }
+    if (!e.target.closest('header')) tree.classList.add('hide');
   });
 
-  // ---- gear panel: pin toggles + mute input ----
-  const plist = document.getElementById('pinlist');
-  rows.forEach(c => {
-    const s = document.createElement('span');
-    s.className = 'chip' + (pins.includes(c.dataset.cc) ? ' on' : '');
-    s.textContent = c.dataset.label;
-    s.onclick = () => {
-      const cc = c.dataset.cc;
-      pins = pins.includes(cc) ? pins.filter(x => x !== cc) : [...pins, cc];
-      s.classList.toggle('on');
-      SV('pins', pins);
-      applyPins();
-    };
-    plist.appendChild(s);
-  });
+  // ---- muted words (now inside the single menu) ----
   const muteEl = document.getElementById('mute');
   muteEl.value = muted.join(', ');
   muteEl.addEventListener('change', () => {
@@ -382,6 +358,7 @@ __ITEMS__
       a.classList.toggle('hideM', !!hit);
       if (hit) n++;
     });
+    document.getElementById('mutebadge').textContent = muted.length ? muted.length + ' words' : '';
     document.getElementById('mutecount').textContent =
       muted.length ? n + ' headlines muted' : '';
   }
@@ -441,7 +418,9 @@ def build_picker():
             label = cmap[cc]["name"]
             parts.append(
                 f'<div class="row" data-cc="{cc}" data-label="{label}">'
-                f'{label}<span class="ck">&#10003;</span></div>'
+                f'<span class="nm">{label}</span>'
+                f'<button class="pin" title="Pin" aria-label="Pin">&#9733;</button>'
+                f'<span class="ck">&#10003;</span></div>'
             )
         parts.append('</div></details>')
     return "".join(parts)

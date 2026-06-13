@@ -1,8 +1,6 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const sumOpen = region => `#tree details:has(summary:text-is("${region}"))`;
-
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
@@ -11,64 +9,68 @@ const sumOpen = region => `#tree details:has(summary:text-is("${region}"))`;
   const r = {};
 
   await p.goto(file);
+  // 0. ONE entry point: a single #menu button, no separate #gear
+  r.menuButtons = await p.locator('header button').count();
+  r.hasGear = await p.locator('#gear').count();
   r.menuLabelDefault = (await p.locator('#mlabel').textContent()).trim();
 
-  // 1. open picker -> all continents collapsed by default (nothing selected yet)
+  // 1. menu opens everything; continents collapsed; settings section present
   await p.click('#menu');
+  r.treeVisible = await p.locator('#tree').isVisible();
   r.openDetailsOnFreshOpen = await p.locator('#tree details[open]').count();
-  r.continentCount = await p.locator('#tree details').count();
+  r.continentCount = await p.locator('#tree details[data-region]').count();
+  r.hasMutedSection = await p.locator('#setgrp summary').textContent().then(t => t.includes('Muted'));
 
-  // 2. the scenario: expand Europe -> France + Bosnia; expand Americas -> Brazil
+  // 2. select France, Bosnia? (Bosnia removed) -> France + Brazil across two continents
   await p.click('#tree summary:has-text("Europe")');
-  await p.click('#tree .row[data-cc="FR"]');
-  r.staysOpenAfterPick = await p.locator('#tree').isVisible();
-  await p.click('#tree .row[data-cc="BA"]');
+  await p.click('#tree .row[data-cc="FR"] .nm');
+  r.staysOpen = await p.locator('#tree').isVisible();
   await p.click('#tree summary:has-text("Americas")');
-  await p.click('#tree .row[data-cc="BR"]');
+  await p.click('#tree .row[data-cc="BR"] .nm');
   r.visibleCodes = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
-  r.labelThree = (await p.locator('#mlabel').textContent()).trim();
-  // per-continent "selected" badges visible while collapsed
-  r.europeBadge = (await p.locator(sumOpen('Europe') + ' .gsel').textContent()).trim();
-  r.americasBadge = (await p.locator(sumOpen('Americas') + ' .gsel').textContent()).trim();
+  r.labelTwo = (await p.locator('#mlabel').textContent()).trim();
 
-  // 3. reopen picker -> continents with a pick auto-expand, others collapsed
-  await p.mouse.click(400, 1000);                       // click outside closes
-  r.closedOnOutsideClick = !(await p.locator('#tree').isVisible());
+  // 3. pin via the star on a row (not selection) — pin Japan, don't select it
+  await p.click('#tree summary:has-text("Asia")');
+  await p.click('#tree .row[data-cc="JP"] .pin');
+  r.jpPinnedNotSelected = await p.locator('#tree .row[data-cc="JP"]').evaluate(
+    e => e.classList.contains('pinned') && !e.classList.contains('sel'));
+  r.pinnedQuickActionShown = await p.locator('#selpins').isVisible();
+  // persists across reload
   await p.reload();
   await p.click('#menu');
-  r.autoExpandedOnReopen = await p.locator('#tree details[open] summary').allTextContents()
-    .then(t => t.map(s => s.replace(/[0-9].*/, '').trim()).sort());
+  r.labelAfterReload = (await p.locator('#mlabel').textContent()).trim();
+  await p.click('#tree summary:has-text("Asia")');
+  r.jpStillPinned = await p.locator('#tree .row[data-cc="JP"]').evaluate(e => e.classList.contains('pinned'));
 
-  // 4. search expands matches and hides empty continents
-  await p.fill('#search', 'fin');
-  r.searchVisibleRows = await p.locator('#tree .row:visible').allTextContents();
-  r.searchVisibleContinents = await p.locator('#tree details:visible summary').allTextContents()
-    .then(t => t.map(s => s.replace(/[0-9].*/, '').trim()));
+  // 4. muted words live in the same menu; badge + count update
+  await p.click('#setgrp summary');
+  await p.fill('#mute', 'world cup, royals');
+  await p.locator('#mute').dispatchEvent('change');
+  r.muteBadge = (await p.locator('#mutebadge').textContent()).trim();
+  r.muteCount = (await p.locator('#mutecount').textContent()).trim();
 
-  // 5. quick actions
-  await p.fill('#search', '');
+  // 5. quick actions: ★ Pinned then All
   await p.click('#selpins');
-  r.pinnedCodes = await p.locator('article:visible').evaluateAll(
+  r.pinnedViewCodes = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
   await p.click('#menu'); await p.click('#selall');
   r.allCount = await p.locator('article:visible').count();
 
-  // 6. mute still works
-  await p.click('#gear');
-  await p.fill('#mute', 'world cup');
-  await p.locator('#mute').dispatchEvent('change');
-  r.mutedSome = (await p.locator('article:visible').count()) < r.allCount;
+  // 6. search hides the settings section + non-matching continents
+  await p.click('#menu');
+  await p.fill('#search', 'jap');
+  r.searchSettingsHidden = !(await p.locator('#setgrp').isVisible());
+  r.searchVisibleRows = await p.locator('#tree .row:visible .nm').allTextContents();
 
-  // screenshots
-  await p.click('#gear'); await p.click('#menu');
+  await p.fill('#search', '');
   await p.click('#tree summary:has-text("Asia")');
-  await p.screenshot({ path: 'preview_picker.png' });
+  await p.screenshot({ path: 'preview_menu.png' });
 
   const ctx2 = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
   const p2 = await ctx2.newPage();
   await p2.goto(file);
-  r.freshLabel = (await p2.locator('#mlabel').textContent()).trim();
   await p2.screenshot({ path: 'preview.png' });
 
   console.log(JSON.stringify(r, null, 2));
