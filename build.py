@@ -169,10 +169,23 @@ PAGE = """<!doctype html>
             font:14px -apple-system,"Segoe UI",sans-serif; color:var(--ink);
             outline:none; }
   #search:focus { border-color:#c9c4ba; }
-  #tree .acts { display:flex; gap:7px; margin-bottom:4px; }
-  #tree .glab { font:600 11px/1 -apple-system,sans-serif; letter-spacing:.12em;
-                text-transform:uppercase; color:var(--meta); margin:12px 10px 4px; }
-  #tree .row { padding:7px 10px; border-radius:8px; cursor:pointer;
+  #tree .acts { display:flex; gap:7px; margin-bottom:6px; }
+  #tree .grp { border-bottom:1px solid var(--line); }
+  #tree summary { list-style:none; cursor:pointer; user-select:none;
+                  padding:9px 10px; display:flex; align-items:center; gap:8px;
+                  font:600 11px/1 -apple-system,sans-serif; letter-spacing:.1em;
+                  text-transform:uppercase; color:var(--meta); }
+  #tree summary::-webkit-details-marker { display:none; }
+  #tree summary::before { content:"\\25B8"; font-size:10px; color:var(--meta);
+                          transition:transform .15s; }
+  #tree details[open] summary::before { transform:rotate(90deg); }
+  #tree summary:hover { color:var(--ink); }
+  #tree .gn { color:var(--meta); font-weight:400; letter-spacing:0; }
+  #tree .gsel { margin-left:auto; color:var(--accent); font-weight:600;
+                letter-spacing:0; font-size:11px; }
+  #tree .gsel:empty { display:none; }
+  #tree .rows { padding-bottom:6px; }
+  #tree .row { padding:7px 10px 7px 26px; border-radius:8px; cursor:pointer;
                font-size:14.5px; display:flex; align-items:center; gap:8px; }
   #tree .row:hover { background:#f1efe9; }
   #tree .row .ck { margin-left:auto; color:var(--accent); font-weight:600;
@@ -265,10 +278,15 @@ __ITEMS__
   const searchEl = document.getElementById('search');
   const articles = [...document.querySelectorAll('article')];
   const rows     = [...tree.querySelectorAll('.row')];
+  const groups   = [...tree.querySelectorAll('.grp')];
 
   // ---- multi-select picker ----
   function applyFilter() {
     rows.forEach(r => r.classList.toggle('sel', sel.includes(r.dataset.cc)));
+    groups.forEach(g => {                              // per-continent selected count
+      const n = [...g.querySelectorAll('.row')].filter(r => r.classList.contains('sel')).length;
+      g.querySelector('.gsel').textContent = n ? n + ' selected' : '';
+    });
     articles.forEach(a =>
       a.classList.toggle('hideF', sel.length > 0 && !sel.includes(a.dataset.code)));
     const nameOf = cc => rows.find(r => r.dataset.cc === cc).dataset.label;
@@ -304,17 +322,26 @@ __ITEMS__
     rows.forEach(r => r.classList.toggle('hide',
       !!q && !r.dataset.label.toLowerCase().includes(q)
           && !r.dataset.cc.toLowerCase().includes(q)));
-    tree.querySelectorAll('.grp').forEach(g =>
-      g.querySelector('.glab').classList.toggle('hide',
-        ![...g.querySelectorAll('.row')].some(r => !r.classList.contains('hide'))));
+    groups.forEach(g => {
+      const hasMatch = [...g.querySelectorAll('.row')].some(r => !r.classList.contains('hide'));
+      g.classList.toggle('hide', !!q && !hasMatch);
+      if (q) g.open = hasMatch;                        // searching expands matches
+    });
   });
+  // open the picker: collapse all continents, expand only those with a pick
+  function resetPicker() {
+    searchEl.value = '';
+    rows.forEach(r => r.classList.remove('hide'));
+    groups.forEach(g => {
+      g.classList.remove('hide');
+      g.open = [...g.querySelectorAll('.row')].some(r => r.classList.contains('sel'));
+    });
+  }
   document.getElementById('menu').onclick = e => {
     e.stopPropagation();
     panel.classList.add('hide');
     tree.classList.toggle('hide');
-    if (!tree.classList.contains('hide')) {
-      searchEl.value = ''; searchEl.dispatchEvent(new Event('input')); searchEl.focus();
-    }
+    if (!tree.classList.contains('hide')) { resetPicker(); searchEl.focus(); }
   };
   document.getElementById('gear').onclick = e => {
     e.stopPropagation();
@@ -405,14 +432,18 @@ def build_picker():
     for region, ccs in groups.items():
         if not ccs:
             continue
-        parts.append(f'<div class="grp"><div class="glab">{region}</div>')
+        parts.append(
+            f'<details class="grp" data-region="{region}"><summary>{region}'
+            f'<span class="gn">{len(ccs)}</span><span class="gsel"></span></summary>'
+            f'<div class="rows">'
+        )
         for cc in ccs:
             label = cmap[cc]["name"]
             parts.append(
                 f'<div class="row" data-cc="{cc}" data-label="{label}">'
                 f'{label}<span class="ck">&#10003;</span></div>'
             )
-        parts.append('</div>')
+        parts.append('</div></details>')
     return "".join(parts)
 
 

@@ -1,6 +1,8 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
+const sumOpen = region => `#tree details:has(summary:text-is("${region}"))`;
+
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
@@ -11,49 +13,58 @@ const path = require('path');
   await p.goto(file);
   r.menuLabelDefault = (await p.locator('#mlabel').textContent()).trim();
 
-  // 1. the user's scenario: select France, Bosnia and Brazil — picker stays open
+  // 1. open picker -> all continents collapsed by default (nothing selected yet)
   await p.click('#menu');
+  r.openDetailsOnFreshOpen = await p.locator('#tree details[open]').count();
+  r.continentCount = await p.locator('#tree details').count();
+
+  // 2. the scenario: expand Europe -> France + Bosnia; expand Americas -> Brazil
+  await p.click('#tree summary:has-text("Europe")');
   await p.click('#tree .row[data-cc="FR"]');
   r.staysOpenAfterPick = await p.locator('#tree').isVisible();
   await p.click('#tree .row[data-cc="BA"]');
+  await p.click('#tree summary:has-text("Americas")');
   await p.click('#tree .row[data-cc="BR"]');
   r.visibleCodes = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
-  r.labelThree = (await p.locator('#mlabel').textContent()).trim();   // names, joined
-  r.checkedRows = await p.locator('#tree .row.sel').count();
+  r.labelThree = (await p.locator('#mlabel').textContent()).trim();
+  // per-continent "selected" badges visible while collapsed
+  r.europeBadge = (await p.locator(sumOpen('Europe') + ' .gsel').textContent()).trim();
+  r.americasBadge = (await p.locator(sumOpen('Americas') + ' .gsel').textContent()).trim();
 
-  // 2. click outside closes; selection persists across reload
-  await p.screenshot({ path: 'preview_tree.png' });
-  await p.mouse.click(400, 900);
+  // 3. reopen picker -> continents with a pick auto-expand, others collapsed
+  await p.mouse.click(400, 1000);                       // click outside closes
   r.closedOnOutsideClick = !(await p.locator('#tree').isVisible());
   await p.reload();
-  r.labelAfterReload = (await p.locator('#mlabel').textContent()).trim();
-
-  // 3. deselect Bosnia (toggle off)
   await p.click('#menu');
-  await p.click('#tree .row[data-cc="BA"]');
-  r.codesAfterDeselect = await p.locator('article:visible').evaluateAll(
-    els => [...new Set(els.map(e => e.dataset.code))].sort());
+  r.autoExpandedOnReopen = await p.locator('#tree details[open] summary').allTextContents()
+    .then(t => t.map(s => s.replace(/[0-9].*/, '').trim()).sort());
 
-  // 4. search narrows the list
+  // 4. search expands matches and hides empty continents
   await p.fill('#search', 'fin');
   r.searchVisibleRows = await p.locator('#tree .row:visible').allTextContents();
-  r.searchGroupLabels = await p.locator('#tree .glab:visible').allTextContents();
+  r.searchVisibleContinents = await p.locator('#tree details:visible summary').allTextContents()
+    .then(t => t.map(s => s.replace(/[0-9].*/, '').trim()));
 
-  // 5. quick actions: Pinned (FI+DK seeded) and All
+  // 5. quick actions
+  await p.fill('#search', '');
   await p.click('#selpins');
   r.pinnedCodes = await p.locator('article:visible').evaluateAll(
     els => [...new Set(els.map(e => e.dataset.code))].sort());
   await p.click('#menu'); await p.click('#selall');
   r.allCount = await p.locator('article:visible').count();
 
-  // 6. mute via gear panel still works
+  // 6. mute still works
   await p.click('#gear');
   await p.fill('#mute', 'world cup');
   await p.locator('#mute').dispatchEvent('change');
   r.mutedSome = (await p.locator('article:visible').count()) < r.allCount;
 
-  // 7. fresh profile defaults
+  // screenshots
+  await p.click('#gear'); await p.click('#menu');
+  await p.click('#tree summary:has-text("Asia")');
+  await p.screenshot({ path: 'preview_picker.png' });
+
   const ctx2 = await b.newContext({ viewport: { width: 820, height: 1200 }, deviceScaleFactor: 2 });
   const p2 = await ctx2.newPage();
   await p2.goto(file);
