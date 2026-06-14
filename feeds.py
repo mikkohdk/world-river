@@ -49,13 +49,13 @@ COUNTRIES = [
         ("The Local Sweden",  "https://www.thelocal.se/feeds/rss.php"),
     ]},
     {"cc": "DK", "name": "Denmark", "sources": [
-        ("CPH Post",          "https://cphpost.dk/feed/"),
+        ("CPH Business",      "https://www.cphbusiness.dk/feed/"),
     ]},
     {"cc": "PL", "name": "Poland", "sources": [
         ("Notes from Poland", "https://notesfrompoland.com/feed/"),
     ]},
     {"cc": "HU", "name": "Hungary", "sources": [
-        ("Daily News Hungary","https://dailynewshungary.com/feed/"),
+        ("Hungary Today",     "https://hungarytoday.hu/feed/"),
     ]},
     {"cc": "UA", "name": "Ukraine", "sources": [
         ("The New Voice",     "https://english.nv.ua/rss/all.xml"),
@@ -84,7 +84,7 @@ COUNTRIES = [
         ("Dawn",              "https://www.dawn.com/feeds/home"),
     ]},
     {"cc": "BD", "name": "Bangladesh", "sources": [
-        ("The Daily Star",    "https://www.thedailystar.net/rss.xml"),
+        ("Bdnews24",          "https://bdnews24.com/feed.xml"),
     ]},
     {"cc": "NP", "name": "Nepal", "sources": [
         ("Kathmandu Post",    "https://kathmandupost.com/rss"),
@@ -97,7 +97,7 @@ COUNTRIES = [
         ("Yonhap",            "https://en.yna.co.kr/RSS/news.xml"),
     ]},
     {"cc": "CN", "name": "China", "sources": [
-        ("China Daily",       "https://www.chinadaily.com.cn/rss/china_rss.xml"),
+        ("CGTN",              "https://www.cgtn.com/subscribe/rss/section/china.xml"),
     ]},
     {"cc": "TW", "name": "Taiwan", "sources": [
         ("Taipei Times",      "https://www.taipeitimes.com/xml/index.rss"),
@@ -120,7 +120,7 @@ COUNTRIES = [
     ]},
     # ---------- Africa ----------
     {"cc": "NG", "name": "Nigeria", "sources": [
-        ("Premium Times",     "https://www.premiumtimesng.com/feed"),
+        ("The Cable",         "https://www.thecable.ng/feed"),
     ]},
     {"cc": "KE", "name": "Kenya", "sources": [
         ("The Standard",      "https://www.standardmedia.co.ke/rss/headlines.php"),
@@ -129,14 +129,14 @@ COUNTRIES = [
         ("MyJoyOnline",       "https://www.myjoyonline.com/feed/"),
     ]},
     {"cc": "ZW", "name": "Zimbabwe", "sources": [
-        ("The Herald",        "https://www.herald.co.zw/feed/"),
+        ("NewZimbabwe",       "https://www.newzimbabwe.com/feed/"),
     ]},
     # ---------- Americas ----------
     {"cc": "US", "name": "United States", "sources": [
         ("NPR",               "https://feeds.npr.org/1003/rss.xml"),
     ]},
     {"cc": "CA", "name": "Canada", "sources": [
-        ("CBC",               "https://www.cbc.ca/webfeed/rss/rss-canada"),
+        ("CBC News",          "https://www.cbc.ca/webfeed/rss/rss-topstories.xml"),
     ]},
     {"cc": "MX", "name": "Mexico", "sources": [
         ("Mexico News Daily", "https://mexiconewsdaily.com/feed/"),

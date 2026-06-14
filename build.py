@@ -68,13 +68,32 @@ def fetch_source(country, source_name, url):
         return [], "EMPTY"
 
     items = []
+    now = int(time.time())
+    seen_urls = set()
+    # Spanish stop words (simple language filter)
+    spanish_stops = {"el", "la", "de", "que", "y", "es", "en", "por", "para", "con", "fubolistas", "futbolistas", "fútbol", "español"}
+
     for e in d.entries[:PER_SOURCE_CAP]:
         title = (e.get("title") or "").strip()
         link = e.get("link") or ""
         if not title or not link:
             continue
+        # skip duplicates
+        if link in seen_urls:
+            continue
+        seen_urls.add(link)
+        # skip sponsored/promoted content
+        if "/promoted/" in link or "/sponsored/" in link or "/advertorial/" in link:
+            continue
+        # simple Spanish language filter: if most words are Spanish stop words, skip
+        title_words = set(title.lower().split())
+        if len(title_words) > 3 and len(title_words & spanish_stops) > len(title_words) * 0.5:
+            continue
         tstruct = e.get("published_parsed") or e.get("updated_parsed")
         ts = calendar.timegm(tstruct) if tstruct else None  # feedparser dates are UTC
+        # skip articles older than 7 days
+        if ts and (now - ts) > 604800:
+            continue
         items.append({
             "title": title,
             "summary": clean_summary(e.get("summary") or e.get("description") or "", title),
