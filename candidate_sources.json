@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-06-14T21:16:12.173646",
+  "candidates": {
+    "DZ": {
+      "DZ": [
+        {
+          "name": "Tsa-Algerie",
+          "url": "https://www.tsa-algerie.com/feed/",
+          "type": "unknown",
+          "notes": "10 items",
+          "validation": {
+            "valid": true,
+            "reason": "Valid feed detected",
+            "size_bytes": 58860
+          }
+        },
+        {
+          "name": "Tsa-Algerie",
+          "url": "https://www.tsa-algerie.com/comments/feed/",
+          "type": "unknown",
+          "notes": "10 items",
+          "validation": {
+            "valid": true,
+            "reason": "Valid feed detected",
+            "size_bytes": 13310
+          }
+        },
+        {
+          "name": "Tsa-Algerie",
+          "url": "https://tsa-algerie.com/feed/",
+          "type": "unknown",
+          "notes": "10 items",
+          "validation": {
+            "valid": true,
+            "reason": "Valid feed detected",
+            "size_bytes": 58860
+          }
+        },
+        {
+          "name": "Tsa-Algerie",
+          "url": "https://tsa-algerie.com/rss/",
+          "type": "unknown",
+          "notes": "10 items",
+          "validation": {
+            "valid": true,
+            "reason": "Valid feed detected",
+            "size_bytes": 58860
+          }
+        }
+      ]
+    }
+  },
+  "summary": {
+    "valid": 4,
+    "invalid": 0,
+    "unknown": 0
+  }
+}

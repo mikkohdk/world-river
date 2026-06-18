@@ -1,0 +1,35 @@
+
+RESEARCH TEMPLATE FOR ALGERIA (DZ)
+================================================================
+
+Instructions:
+1. Search Google: "Algeria news RSS feed English"
+2. Search Google: "Algeria broadcaster news"
+3. Visit major outlet websites and look for /feed/, /rss/, or /feeds/ URLs
+4. Fill in the outlets below
+5. Run: python discover_sources.py import -c DZ
+
+OUTLETS TO RESEARCH:
+-------------------
+
+Outlet 1:
+  Name: [e.g., APS News]
+  Feed URL: [e.g., https://...]
+  Type: [broadcast/commercial/wire/nonprofit]
+  Notes: [e.g., National news agency]
+
+Outlet 2:
+  Name:
+  Feed URL:
+  Type:
+  Notes:
+
+Outlet 3:
+  Name:
+  Feed URL:
+  Type:
+  Notes:
+
+-------------------
+Once filled, save as: research_DZ.txt
+Then run: python discover_sources.py import -c DZ

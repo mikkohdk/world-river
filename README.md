@@ -25,19 +25,28 @@ python build.py            # writes index.html
 python build.py --health   # report which feeds are live
 ```
 
-Maintenance tooling: `probe_world.py` vets candidate feeds (liveness + domestic
-gaze), `check_links.py` verifies articles resolve and aren't paywalled,
-`verify.js` (Playwright) tests the personalization layer.
+Maintenance tooling: 
+
+- **`audit_links.py`** — Audit all article links for paywalls; find free alternatives
+- **`find_sources.py`** — Research and validate new free news sources
+- **`watch_feeds.py`** — Monitor feed health and response times
+- `probe_world.py`, `check_links.py` — Legacy vetting tools
+- `verify.js` (Playwright) — Test the personalization layer
+
+See **[AUDIT_README.md](AUDIT_README.md)** for detailed usage.
 
 ## Editing the roster
 
-Add a country/source in `feeds.py`. House rules learned the hard way:
+Add, remove, or flag sources in `feeds.py`. See **[SOURCES_MAINTENANCE.md](SOURCES_MAINTENANCE.md)** for workflows.
+
+House rules learned the hard way:
 
 - Use the outlet's **national desk** feed, never "world" / "top stories".
 - International broadcasters' main feeds (BBC World, France24, DW-all,
   Al Jazeera) are outward-gazing — excluded by design.
 - Beware wire mirrors (a domestic *domain* republishing AP is not domestic news).
-- Feed URLs rot; run `probe_world.py` / `--health` after edits.
+- When a source goes behind paywall, comment it out with reason (don't delete).
+- Feed URLs rot; run `python watch_feeds.py` after edits to verify.
 - Some feeds publish future timestamps (local time as UTC) — build.py clamps.
 
 ## Content & politeness

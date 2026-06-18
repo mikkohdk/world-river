@@ -1,0 +1,235 @@
+{
+  "timestamp": "2026-06-14T19:42:57.864898",
+  "feeds": {
+    "AU ABC News": {
+      "url": "https://www.abc.net.au/news/feed/51120/rss.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "AU Guardian Australia": {
+      "url": "https://www.theguardian.com/australia-news/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "NZ RNZ": {
+      "url": "https://www.rnz.co.nz/rss/national.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "NZ Stuff": {
+      "url": "https://www.stuff.co.nz/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "FJ FBC News": {
+      "url": "https://www.fbcnews.com.fj/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "GB BBC UK": {
+      "url": "https://feeds.bbci.co.uk/news/uk/rss.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IE TheJournal": {
+      "url": "https://www.thejournal.ie/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "FR RFI France": {
+      "url": "https://www.rfi.fr/en/france/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "DE Deutsche Welle": {
+      "url": "https://rss.dw.com/rdf/rss-en-ger",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "NL DutchNews": {
+      "url": "https://www.dutchnews.nl/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IT ANSA": {
+      "url": "https://www.ansa.it/english/english_rss.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "PT Portugal News": {
+      "url": "https://www.theportugalnews.com/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "FI Yle News": {
+      "url": "https://feeds.yle.fi/uutiset/v1/recent.rss?publisherIds=YLE_NEWS",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "SE The Local Sweden": {
+      "url": "https://www.thelocal.se/feeds/rss.php",
+      "accessible": false,
+      "reason": "HTTP 301"
+    },
+    "DK CPH Business": {
+      "url": "https://www.cphbusiness.dk/feed/",
+      "accessible": false,
+      "reason": "HTTP 301"
+    },
+    "PL Notes from Poland": {
+      "url": "https://notesfrompoland.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "HU Hungary Today": {
+      "url": "https://hungarytoday.hu/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "UA The New Voice": {
+      "url": "https://english.nv.ua/rss/all.xml",
+      "accessible": false,
+      "reason": "HTTP 302"
+    },
+    "UA Ukrinform": {
+      "url": "https://www.ukrinform.net/rss/block-lastnews",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "RU The Moscow Times": {
+      "url": "https://www.themoscowtimes.com/rss/news",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IL Times of Israel": {
+      "url": "https://www.timesofisrael.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IR Tehran Times": {
+      "url": "https://www.tehrantimes.com/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "EG Egypt Independent": {
+      "url": "https://www.egyptindependent.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IN The Hindu": {
+      "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "IN Times of India": {
+      "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "PK Dawn": {
+      "url": "https://www.dawn.com/feeds/home",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "BD Bdnews24": {
+      "url": "https://bdnews24.com/feed.xml",
+      "accessible": false,
+      "reason": "HTTP 404"
+    },
+    "NP Kathmandu Post": {
+      "url": "https://kathmandupost.com/rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "JP Japan Times": {
+      "url": "https://www.japantimes.co.jp/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "KR Yonhap": {
+      "url": "https://en.yna.co.kr/RSS/news.xml",
+      "accessible": false,
+      "reason": "HTTP 405"
+    },
+    "CN CGTN": {
+      "url": "https://www.cgtn.com/subscribe/rss/section/china.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "TW Taipei Times": {
+      "url": "https://www.taipeitimes.com/xml/index.rss",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "HK HKFP": {
+      "url": "https://hongkongfp.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "SG Channel News Asia": {
+      "url": "https://www.channelnewsasia.com/rssfeeds/8396082",
+      "accessible": false,
+      "reason": "HTTP 301"
+    },
+    "MY Malay Mail": {
+      "url": "https://www.malaymail.com/feed/rss/malaysia",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "VN VnExpress": {
+      "url": "https://e.vnexpress.net/rss/news.rss",
+      "accessible": false,
+      "reason": "HTTP 406"
+    },
+    "PH Inquirer": {
+      "url": "https://www.inquirer.net/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "PH Rappler": {
+      "url": "https://www.rappler.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "NG The Cable": {
+      "url": "https://www.thecable.ng/feed",
+      "accessible": false,
+      "reason": "HTTP 403"
+    },
+    "GH MyJoyOnline": {
+      "url": "https://www.myjoyonline.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "ZW NewZimbabwe": {
+      "url": "https://www.newzimbabwe.com/feed/",
+      "accessible": false,
+      "reason": "HTTP 403"
+    },
+    "US NPR": {
+      "url": "https://feeds.npr.org/1003/rss.xml",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "CA CBC News": {
+      "url": "https://www.cbc.ca/webfeed/rss/rss-topstories.xml",
+      "accessible": false,
+      "reason": "HTTP 400"
+    },
+    "MX Mexico News Daily": {
+      "url": "https://mexiconewsdaily.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "BR Rio Times": {
+      "url": "https://www.riotimesonline.com/feed/",
+      "accessible": true,
+      "reason": "HTTP 200"
+    },
+    "AR Buenos Aires Times": {
+      "url": "https://www.batimes.com.ar/feed",
+      "accessible": true,
+      "reason": "HTTP 200"
+    }
+  }
+}

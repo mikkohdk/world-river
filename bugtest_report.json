@@ -1,0 +1,368 @@
+{
+  "consoleErrors": [],
+  "findings": [
+    {
+      "id": "dark-theme",
+      "note": "data-theme attr on html/body: null / null"
+    },
+    {
+      "id": "stylesheets-linked",
+      "note": "linked stylesheets: (none - inline only)"
+    },
+    {
+      "id": "menu-open-desktop",
+      "headerBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 377.5
+      },
+      "treeBox": {
+        "x": 240,
+        "y": 59,
+        "width": 720,
+        "height": 303.5
+      }
+    },
+    {
+      "id": "header-after-scroll",
+      "headerBoxAfterScroll": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 377.5
+      }
+    },
+    {
+      "id": "multi-select-3-countries",
+      "mlabel": "France, Germany, Japan",
+      "visibleCodes": [
+        "DE",
+        "FR",
+        "JP"
+      ]
+    },
+    {
+      "id": "deselect-germany",
+      "mlabel": "France, Japan",
+      "visibleCodes": [
+        "FR",
+        "JP"
+      ]
+    },
+    {
+      "id": "gsel-counts",
+      "gselTexts": [
+        {
+          "region": "Europe",
+          "text": "1 selected"
+        },
+        {
+          "region": "Asia",
+          "text": "1 selected"
+        },
+        {
+          "region": "Middle East",
+          "text": ""
+        },
+        {
+          "region": "Africa",
+          "text": ""
+        },
+        {
+          "region": "Americas",
+          "text": ""
+        },
+        {
+          "region": "Oceania",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "id": "selpins-visible-with-default-pins",
+      "visible": true
+    },
+    {
+      "id": "selall-click",
+      "mlabel": "All",
+      "visibleCount": 250,
+      "treeHidden": true
+    },
+    {
+      "id": "selpins-click-default-pins",
+      "mlabel": "Finland, Denmark",
+      "visibleCodes": [
+        "FI"
+      ]
+    },
+    {
+      "id": "selpins-hidden-when-no-pins",
+      "visible": false
+    },
+    {
+      "id": "pin-persistence",
+      "jpPinnedAfterReload": true,
+      "fiPinnedAfterReload_shouldBeFalse": false
+    },
+    {
+      "id": "search-jap",
+      "searchSettingsHidden": true,
+      "searchVisibleRows": [
+        "Japan"
+      ],
+      "asiaOpenDuringSearch": true,
+      "europeHiddenDuringSearch": true
+    },
+    {
+      "id": "search-no-match",
+      "noMatchVisibleRows": 0,
+      "allGroupsHiddenNoMatch": 0
+    },
+    {
+      "id": "search-by-cc-fr",
+      "frSearchRows": [
+        "France"
+      ]
+    },
+    {
+      "id": "search-cleared",
+      "setgrpVisibleAfterClear": true
+    },
+    {
+      "id": "mute-world-cup",
+      "muteBadge": "1 words",
+      "muteCount": "19 headlines muted",
+      "hiddenCount": 19
+    },
+    {
+      "id": "mute-no-match",
+      "muteBadge": "1 words",
+      "muteCount": "0 headlines muted",
+      "hiddenCount": 0
+    },
+    {
+      "id": "mute-multi-words-trimmed",
+      "muteBadge": "3 words",
+      "muteCount": "33 headlines muted",
+      "hiddenCount": 33,
+      "storedMuted": [
+        "world cup",
+        "trump",
+        "brazil"
+      ]
+    },
+    {
+      "id": "mute-empty",
+      "muteBadge": "",
+      "muteCount": "",
+      "hiddenCount": 0
+    },
+    {
+      "id": "mute-persistence",
+      "muteValAfterReload": "iran",
+      "muteBadgeAfterReload": "1 words"
+    },
+    {
+      "id": "read-dim-click",
+      "firstArticleHrefBefore": "https://www.thehindu.com/news/national/karnataka/eye-surgeon-couple-from-mysuru-lead-camp-in-ghana/article71100503.ece",
+      "firstArticleClassBefore": null,
+      "firstArticleClassAfter": "read",
+      "readSetIncludes": true
+    },
+    {
+      "id": "read-dim-persists-reload",
+      "firstArticleClassAfterReload": "read"
+    },
+    {
+      "id": "nd-dots-after-reload-1",
+      "ndCountFirstReload": 0
+    },
+    {
+      "id": "nd-dots-after-reload-2",
+      "ndCountSecondReload": 0
+    },
+    {
+      "id": "click-outside-closes-menu",
+      "treeVisibleBeforeOutsideClick": true,
+      "treeVisibleAfterOutsideClick": false
+    },
+    {
+      "id": "escape-closes-menu",
+      "treeVisibleBeforeEsc": true,
+      "treeVisibleAfterEsc": true
+    },
+    {
+      "id": "focus-on-menu-open",
+      "focusedAfterOpen": "menu"
+    },
+    {
+      "id": "tab-order",
+      "focused1": "<a class=\"t\" href=\"https://www.thehindu.com/news/national/karnataka/eye-surgeon-",
+      "focused2": "<a class=\"t\" href=\"https://www.ukrinform.net/rubric-ato/4133602-one-of-russias-l"
+    },
+    {
+      "id": "focus-outline-style",
+      "focusOutline": {
+        "outline": "rgb(16, 16, 16) auto 1px",
+        "outlineStyle": "auto",
+        "boxShadow": "none"
+      }
+    },
+    {
+      "id": "data-content-issues",
+      "dataIssues": {
+        "emptyTitles": [],
+        "noSummary": 17,
+        "badHref": [],
+        "emptySource": [],
+        "emptyCountry": [],
+        "longTitles": [],
+        "totalArticles": 250
+      }
+    },
+    {
+      "id": "unescaped-entity-check",
+      "entityIssues": []
+    },
+    {
+      "id": "accessibility",
+      "a11y": {
+        "menuAriaLabel": "Menu",
+        "searchHasLabel": true,
+        "searchAriaLabel": null,
+        "muteAriaLabel": null,
+        "pinButtonsAriaLabel": [
+          "Pin",
+          "Pin",
+          "Pin"
+        ],
+        "h1Text": "World River",
+        "landmarks": {
+          "header": true,
+          "main": true,
+          "footer": true
+        },
+        "langAttr": "en",
+        "imagesWithoutAlt": 0,
+        "linksWithoutText": 0,
+        "svgAriaHidden": "true"
+      }
+    },
+    {
+      "id": "mobile-overflow",
+      "overflowMobile": {
+        "bodyScrollWidth": 375,
+        "windowInnerWidth": 375,
+        "docScrollWidth": 375
+      }
+    },
+    {
+      "id": "mobile-menu-tree",
+      "treeBoxMobile": {
+        "x": 24,
+        "y": 59,
+        "width": 327,
+        "height": 303.5
+      },
+      "treeMaxHeight": "487.2px",
+      "viewportHeight": 812
+    },
+    {
+      "id": "mlabel-mobile-many-selected",
+      "mlabelMobile": "5 countries",
+      "mlabelBox": {
+        "x": 236,
+        "y": 22.25,
+        "width": 59,
+        "height": 19.5
+      }
+    },
+    {
+      "id": "mobile-title-overflow",
+      "longTitleOverflowMobile": {
+        "overflow": 0,
+        "text": "Eye surgeon couple from Mysuru lead camp in Ghana",
+        "scrollWidth": 327,
+        "clientWidth": 327
+      }
+    },
+    {
+      "id": "mobile-summary-clamp",
+      "summaryClampCheck": {
+        "webkitLineClamp": "2",
+        "overflow": "hidden",
+        "scrollHeight": 82,
+        "clientHeight": 41
+      }
+    },
+    {
+      "id": "tablet-overflow",
+      "overflowTablet": {
+        "bodyScrollWidth": 768,
+        "windowInnerWidth": 768
+      }
+    },
+    {
+      "id": "tablet-tree-maxheight",
+      "treeMaxHeightTablet": "614.4px"
+    },
+    {
+      "id": "header-row-overlap-1024",
+      "hrowOverlap": {
+        "h1": {
+          "x": 152,
+          "y": 22.5,
+          "width": 129.765625,
+          "height": 15,
+          "top": 22.5,
+          "right": 281.765625,
+          "bottom": 37.5,
+          "left": 152
+        },
+        "upd": {
+          "x": 291.765625,
+          "y": 21,
+          "width": 76.203125,
+          "height": 18,
+          "top": 21,
+          "right": 367.96875,
+          "bottom": 39,
+          "left": 291.765625
+        },
+        "mlabel": {
+          "x": 752.703125,
+          "y": 20.25,
+          "width": 63.296875,
+          "height": 19.5,
+          "top": 20.25,
+          "right": 816,
+          "bottom": 39.75,
+          "left": 752.703125
+        },
+        "menu": {
+          "x": 836,
+          "y": 14,
+          "width": 36,
+          "height": 32,
+          "top": 14,
+          "right": 872,
+          "bottom": 46,
+          "left": 836
+        },
+        "mlabelOverlapsMenu": false
+      }
+    },
+    {
+      "id": "color-vars-in-use",
+      "colorVars": {
+        "bg": "#faf9f7",
+        "ink": "#1d1d1f",
+        "meta": "#9a958c",
+        "accent": "#3a6ea5",
+        "line": "#eceae5"
+      },
+      "note": "compare to Margin tokens in tokens/colors.css for design-system drift"
+    }
+  ]
+}

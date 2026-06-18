@@ -148,6 +148,9 @@ COUNTRIES = [
     {"cc": "AR", "name": "Argentina", "sources": [
         ("Buenos Aires Times","https://www.batimes.com.ar/feed"),
     ]},
+    {"cc": "DZ", "name": "Algeria", "sources": [
+        ("TSA",                "https://www.tsa-algerie.com/feed/"),
+    ]},
 ]
 
 

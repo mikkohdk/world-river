@@ -1,0 +1,121 @@
+{
+  "AU": {
+    "country": "Australia",
+    "alternatives": [
+      {
+        "name": "ABC News",
+        "url": "https://www.abc.net.au/news/",
+        "type": "broadcast",
+        "note": "Already in River"
+      },
+      {
+        "name": "SBS News",
+        "url": "https://www.sbs.com.au/news",
+        "type": "broadcast"
+      }
+    ]
+  },
+  "GB": {
+    "country": "United Kingdom",
+    "alternatives": [
+      {
+        "name": "BBC News",
+        "url": "https://www.bbc.com/news/",
+        "type": "broadcast"
+      },
+      {
+        "name": "Sky News",
+        "url": "https://news.sky.com/",
+        "type": "commercial"
+      },
+      {
+        "name": "ITV News",
+        "url": "https://www.itv.com/news",
+        "type": "broadcast"
+      }
+    ]
+  },
+  "FR": {
+    "country": "France",
+    "alternatives": [
+      {
+        "name": "France 24",
+        "url": "https://www.france24.com/",
+        "type": "broadcast"
+      },
+      {
+        "name": "RFI",
+        "url": "https://www.rfi.fr/",
+        "type": "broadcast"
+      }
+    ]
+  },
+  "DE": {
+    "country": "Germany",
+    "alternatives": [
+      {
+        "name": "Deutsche Welle",
+        "url": "https://www.dw.com/",
+        "type": "broadcast",
+        "note": "Already in River"
+      },
+      {
+        "name": "DPA",
+        "url": "https://www.dpa.com/",
+        "type": "wire"
+      }
+    ]
+  },
+  "IN": {
+    "country": "India",
+    "alternatives": [
+      {
+        "name": "NDTV",
+        "url": "https://www.ndtv.com/",
+        "type": "commercial"
+      },
+      {
+        "name": "India Today",
+        "url": "https://www.indiatoday.in/",
+        "type": "commercial"
+      }
+    ]
+  },
+  "US": {
+    "country": "United States",
+    "alternatives": [
+      {
+        "name": "NPR",
+        "url": "https://www.npr.org/",
+        "type": "public_radio",
+        "note": "Already in River"
+      },
+      {
+        "name": "AP News",
+        "url": "https://apnews.com/",
+        "type": "wire"
+      },
+      {
+        "name": "Reuters",
+        "url": "https://www.reuters.com/",
+        "type": "wire"
+      },
+      {
+        "name": "ProPublica",
+        "url": "https://www.propublica.org/",
+        "type": "nonprofit"
+      }
+    ]
+  },
+  "CA": {
+    "country": "Canada",
+    "alternatives": [
+      {
+        "name": "CBC News",
+        "url": "https://www.cbc.ca/news",
+        "type": "broadcast",
+        "note": "Already in River"
+      }
+    ]
+  }
+}
