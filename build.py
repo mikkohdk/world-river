@@ -150,10 +150,8 @@ PAGE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The River</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {
     --paper-0: #FAF9F6; --paper-1: #FFFFFF; --paper-2: #F3F1EC; --paper-3: #ECE9E2;
@@ -295,11 +293,17 @@ PAGE = """<!doctype html>
 
   .group { margin-bottom:4px; }
   .group-head { display:flex; align-items:center; gap:10px; padding:7px 0;
-                cursor:pointer; user-select:none; list-style:none; }
+                user-select:none; list-style:none; }
   .group-head::-webkit-details-marker { display:none; }
+  .tri-btn { border:0; background:none; padding:0; cursor:pointer;
+             display:flex; align-items:center; flex:0 0 auto; }
+  .group-name { cursor:pointer; }
   .tri { width:0; height:0; border-top:5px solid transparent; border-bottom:5px solid transparent;
          border-left:6px solid var(--text-subtle); transition:transform .12s; flex:0 0 auto; }
   details[open] > .group-head .tri { transform:rotate(90deg); }
+  .group[data-region].open > .group-head .tri { transform:rotate(90deg); }
+  .group[data-region] .rows { display:none; }
+  .group[data-region].open .rows { display:block; }
   .group-name { font-family:var(--font-mono); font-size:var(--fs-xs); letter-spacing:var(--tracking-caps);
                 text-transform:uppercase; color:var(--text-muted); font-weight:500; }
   .group-count { font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--text-subtle); }
@@ -433,32 +437,37 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
   });
   document.getElementById('clearsel').onclick = () => { sel = []; applyFilter(); };
   tree.addEventListener('click', e => {
-    const r = e.target.closest('.country-row'); if (!r) return;
-    const cc = r.dataset.cc;
-    sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
-    applyFilter();                                  // picker stays open for more picks
-  });
-  // open the picker: expand only continents with a pick
-  function resetPicker() {
-    const anySelected = sel.length > 0;
-    groups.forEach(g => {
-      g.open = anySelected
-        ? [...g.querySelectorAll('.country-row')].some(r => r.classList.contains('sel'))
-        : true;
-    });
-    setgrp.open = false;
-  }
-  groups.forEach(g => {
-    g.querySelector('.group-name').addEventListener('click', e => {
-      e.stopPropagation();
-      const regionCCs = [...g.querySelectorAll('.country-row')].map(r => r.dataset.cc);
+    if (e.target.closest('.tri-btn')) {
+      e.target.closest('.group[data-region]').classList.toggle('open');
+      return;
+    }
+    const gname = e.target.closest('.group-name');
+    if (gname && gname.closest('[data-region]')) {
+      const group = gname.closest('[data-region]');
+      const regionCCs = [...group.querySelectorAll('.country-row')].map(r => r.dataset.cc);
       const allSel = regionCCs.every(cc => sel.includes(cc));
       sel = allSel
         ? sel.filter(cc => !regionCCs.includes(cc))
         : [...new Set([...sel, ...regionCCs])];
       applyFilter();
-    });
+      return;
+    }
+    const r = e.target.closest('.country-row'); if (!r) return;
+    const cc = r.dataset.cc;
+    sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
+    applyFilter();
   });
+  // open the picker: expand only continents with a pick
+  function resetPicker() {
+    const anySelected = sel.length > 0;
+    groups.forEach(g => {
+      const show = anySelected
+        ? [...g.querySelectorAll('.country-row')].some(r => r.classList.contains('sel'))
+        : true;
+      g.classList.toggle('open', show);
+    });
+    setgrp.open = false;
+  }
   function closeMenu() { tree.classList.add('hide'); menuBtn.classList.remove('open'); }
   menuBtn.onclick = e => {
     e.stopPropagation();
@@ -576,9 +585,10 @@ def build_picker():
         if not ccs:
             continue
         parts.append(
-            f'<details class="group" data-region="{region}"><summary class="group-head">'
-            f'<span class="tri"></span><span class="group-name">{region}</span>'
-            f'<span class="group-count">{len(ccs)}</span><span class="group-sel"></span></summary>'
+            f'<div class="group" data-region="{region}"><div class="group-head">'
+            f'<button class="tri-btn" aria-label="Toggle {region}"><span class="tri"></span></button>'
+            f'<span class="group-name">{region}</span>'
+            f'<span class="group-count">{len(ccs)}</span><span class="group-sel"></span></div>'
             f'<div class="rows">'
         )
         for cc in ccs:
@@ -588,7 +598,7 @@ def build_picker():
                 f'<span class="nm">{label}</span>'
                 f'<span class="check hidden">{CHECK_SVG}</span></div>'
             )
-        parts.append('</div></details>')
+        parts.append('</div></div>')
     return "".join(parts)
 
 
