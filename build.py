@@ -150,8 +150,10 @@ PAGE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The River</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {
     --paper-0: #FAF9F6; --paper-1: #FFFFFF; --paper-2: #F3F1EC; --paper-3: #ECE9E2;
@@ -215,7 +217,7 @@ PAGE = """<!doctype html>
   #menu.open .bar:nth-child(1) { transform:translateY(5px) rotate(45deg); }
   #menu.open .bar:nth-child(2) { opacity:0; transform:scaleX(.35); }
   #menu.open .bar:nth-child(3) { transform:translateY(-5px) rotate(-45deg); }
-  @media (prefers-reduced-motion:reduce) { #menu .bar { transition:none; } }
+  @media (prefers-reduced-motion:reduce) { #menu .bar { transition:none; } .tri { transition:none; } }
   @media (max-width:480px) {
     #upd { display:none; }
     #mlabel { max-width:25vw; }
@@ -351,8 +353,8 @@ PAGE = """<!doctype html>
         <div id="mutecount" class="muted-cap"></div>
       </div>
     </details>
-    <div class="group" id="feedbackgrp">
-      <div class="group-head"><span class="group-name">Feedback</span></div>
+    <details class="group" id="feedbackgrp">
+      <summary class="group-head"><span class="tri"></span><span class="group-name">Feedback</span></summary>
       <div style="display:flex; align-items:center; gap:8px;">
         <div class="search" style="flex:1; margin-bottom:0;">
           <input id="fbtext" placeholder="Suggest a source, report a bug, or leave feedback&hellip;">
@@ -360,7 +362,7 @@ PAGE = """<!doctype html>
         <button id="fbsend" class="pill" style="margin:0; flex:0 0 auto; height:44px;">Send</button>
       </div>
       <p class="muted-cap" id="fbstatus"></p>
-    </div>
+    </details>
     <div class="menu-edge"><span class="ln"></span><span>End</span><span class="dot"></span></div>
   </div>
 </div></header>
@@ -431,6 +433,18 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
   });
   document.getElementById('clearsel').onclick = () => { sel = []; applyFilter(); };
   tree.addEventListener('click', e => {
+    const gname = e.target.closest('.group-name');
+    if (gname && gname.closest('[data-region]')) {
+      e.preventDefault();
+      const group = gname.closest('[data-region]');
+      const regionCCs = [...group.querySelectorAll('.country-row')].map(r => r.dataset.cc);
+      const allSel = regionCCs.every(cc => sel.includes(cc));
+      sel = allSel
+        ? sel.filter(cc => !regionCCs.includes(cc))
+        : [...new Set([...sel, ...regionCCs])];
+      applyFilter();
+      return;
+    }
     const r = e.target.closest('.country-row'); if (!r) return;
     const cc = r.dataset.cc;
     sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
@@ -438,8 +452,11 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
   });
   // open the picker: expand only continents with a pick
   function resetPicker() {
+    const anySelected = sel.length > 0;
     groups.forEach(g => {
-      g.open = [...g.querySelectorAll('.country-row')].some(r => r.classList.contains('sel'));
+      g.open = anySelected
+        ? [...g.querySelectorAll('.country-row')].some(r => r.classList.contains('sel'))
+        : true;
     });
     setgrp.open = false;
   }
@@ -560,7 +577,7 @@ def build_picker():
         if not ccs:
             continue
         parts.append(
-            f'<details class="group" data-region="{region}" open><summary class="group-head">'
+            f'<details class="group" data-region="{region}"><summary class="group-head">'
             f'<span class="tri"></span><span class="group-name">{region}</span>'
             f'<span class="group-count">{len(ccs)}</span><span class="group-sel"></span></summary>'
             f'<div class="rows">'
