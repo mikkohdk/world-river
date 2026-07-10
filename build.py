@@ -202,10 +202,20 @@ PAGE = """<!doctype html>
   #upd { font-family:var(--font-mono); font-size:var(--fs-sm); color:var(--text-subtle); }
   #mlabel { font-size:var(--fs-base); color:var(--text-muted);
             max-width:40vw; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-  #menu { width:28px; height:28px; border:0; background:transparent;
-          color:var(--text-body); display:grid; place-items:center; cursor:pointer; padding:0; }
-  #menu svg { width:22px; height:22px; }
-  #menu:hover, #menu.open { color:var(--accent); }
+  #menu { position:relative; width:28px; height:28px; border:0; background:transparent;
+          color:var(--text-body); cursor:pointer; padding:0; }
+  #menu:hover { color:var(--text-strong); }
+  #menu.open { color:var(--accent); }
+  #menu .bar { position:absolute; left:4px; right:4px; height:2px;
+               background:currentColor; border-radius:2px;
+               transition:transform .2s ease-out, opacity .15s ease-out; }
+  #menu .bar:nth-child(1) { top:8px; }
+  #menu .bar:nth-child(2) { top:13px; }
+  #menu .bar:nth-child(3) { top:18px; }
+  #menu.open .bar:nth-child(1) { transform:translateY(5px) rotate(45deg); }
+  #menu.open .bar:nth-child(2) { opacity:0; transform:scaleX(.35); }
+  #menu.open .bar:nth-child(3) { transform:translateY(-5px) rotate(-45deg); }
+  @media (prefers-reduced-motion:reduce) { #menu .bar { transition:none; } }
   @media (max-width:480px) {
     #upd { display:none; }
     #mlabel { max-width:25vw; }
@@ -236,7 +246,15 @@ PAGE = """<!doctype html>
   footer.colophon a { color:var(--accent); }
 
   /* ---- menu panel ---- */
-  #tree { padding:18px 0 6px; max-height:70vh; overflow:auto; }
+  #tree { padding:10px 16px 16px; max-height:70vh; overflow:auto;
+          background:rgba(23,108,151,.05); border-left:2px solid var(--accent);
+          border-radius:0 var(--radius-md) var(--radius-md) 0; margin-top:14px; }
+  .menu-edge { display:flex; align-items:center; gap:10px; padding:8px 0;
+               font-family:var(--font-mono); font-size:var(--fs-xs);
+               letter-spacing:var(--tracking-caps); text-transform:uppercase;
+               color:var(--accent); font-weight:500; }
+  .menu-edge .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); flex:0 0 auto; }
+  .menu-edge .ln { flex:1; height:1px; background:var(--accent); opacity:.28; }
   .search { width:100%; height:44px; border-radius:var(--radius-md);
             border:1px solid var(--border-default); background:var(--paper-1);
             display:flex; align-items:center; padding:0 14px; gap:10px;
@@ -312,14 +330,12 @@ PAGE = """<!doctype html>
       <div class="folio-right">
         <span id="upd" data-ts="__BUILT__"></span>
         <span id="mlabel">All</span>
-        <button id="menu" aria-label="Open menu"><svg viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/>
-          <line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
+        <button id="menu" aria-label="Open menu"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button>
       </div>
     </div>
   </div>
   <div id="tree" class="hide">
+    <div class="menu-edge"><span class="dot"></span><span>Menu</span><span class="ln"></span></div>
     <div class="selected-strip hide" id="selstrip">
       <button class="clear-all" id="clearsel" aria-label="Clear all selected"><svg viewBox="0 0 24 24"
         fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
@@ -337,13 +353,15 @@ PAGE = """<!doctype html>
     </details>
     <div class="group" id="feedbackgrp">
       <div class="group-head"><span class="group-name">Feedback</span></div>
-      <div class="search" id="fbbox" style="height:auto; align-items:flex-end; gap:8px; padding:8px 14px;">
-        <textarea id="fbtext" rows="1" placeholder="Suggest a news source, report a bug, or leave feedback&hellip;"
-          style="flex:1; min-width:0; border:0; outline:0; background:none; resize:vertical; font:inherit; color:inherit; line-height:1.4;"></textarea>
-        <button id="fbsend" class="pill" style="margin:0; flex:0 0 auto;">Send</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="search" style="flex:1; margin-bottom:0;">
+          <input id="fbtext" placeholder="Suggest a source, report a bug, or leave feedback&hellip;">
+        </div>
+        <button id="fbsend" class="pill" style="margin:0; flex:0 0 auto; height:44px;">Send</button>
       </div>
       <p class="muted-cap" id="fbstatus"></p>
     </div>
+    <div class="menu-edge"><span class="ln"></span><span>End</span><span class="dot"></span></div>
   </div>
 </div></header>
 <main id="feed" class="col">
@@ -395,8 +413,7 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
     mlabel.textContent =
         sel.length === 0 ? 'All'
       : sel.length === 1 ? nameOf(sel[0])
-      : sel.length <= 3  ? sel.map(nameOf).join(', ')
-      : sel.length + ' countries';
+      : sel.length + ' filters';
     selstrip.classList.toggle('hide', sel.length === 0);
     chipsEl.innerHTML = sel.map(cc => {
       const label = nameOf(cc);
