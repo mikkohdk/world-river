@@ -433,18 +433,6 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
   });
   document.getElementById('clearsel').onclick = () => { sel = []; applyFilter(); };
   tree.addEventListener('click', e => {
-    const gname = e.target.closest('.group-name');
-    if (gname && gname.closest('[data-region]')) {
-      e.preventDefault();
-      const group = gname.closest('[data-region]');
-      const regionCCs = [...group.querySelectorAll('.country-row')].map(r => r.dataset.cc);
-      const allSel = regionCCs.every(cc => sel.includes(cc));
-      sel = allSel
-        ? sel.filter(cc => !regionCCs.includes(cc))
-        : [...new Set([...sel, ...regionCCs])];
-      applyFilter();
-      return;
-    }
     const r = e.target.closest('.country-row'); if (!r) return;
     const cc = r.dataset.cc;
     sel = sel.includes(cc) ? sel.filter(x => x !== cc) : [...sel, cc];
@@ -460,6 +448,17 @@ Menu: pick countries and mute words &middot; clicked headlines dim &middot;
     });
     setgrp.open = false;
   }
+  groups.forEach(g => {
+    g.querySelector('.group-name').addEventListener('click', e => {
+      e.stopPropagation();
+      const regionCCs = [...g.querySelectorAll('.country-row')].map(r => r.dataset.cc);
+      const allSel = regionCCs.every(cc => sel.includes(cc));
+      sel = allSel
+        ? sel.filter(cc => !regionCCs.includes(cc))
+        : [...new Set([...sel, ...regionCCs])];
+      applyFilter();
+    });
+  });
   function closeMenu() { tree.classList.add('hide'); menuBtn.classList.remove('open'); }
   menuBtn.onclick = e => {
     e.stopPropagation();
