@@ -292,22 +292,24 @@ PAGE = """<!doctype html>
                 color:var(--text-subtle); white-space:nowrap; }
 
   .group { margin-bottom:4px; }
-  .group-head { display:flex; align-items:center; gap:10px; padding:7px 0;
+  .group-head { display:flex; align-items:center; min-height:44px;
                 user-select:none; list-style:none; }
   .group-head::-webkit-details-marker { display:none; }
-  .tri-btn { border:0; background:none; padding:0; cursor:pointer;
-             display:flex; align-items:center; flex:0 0 auto; }
+  .tri-btn { border:0; background:none; padding:0 8px 0 0; cursor:pointer;
+             display:flex; align-items:center; justify-content:center;
+             flex:0 0 auto; min-width:38px; min-height:44px; }
   .group-name { cursor:pointer; }
-  .tri { width:0; height:0; border-top:5px solid transparent; border-bottom:5px solid transparent;
-         border-left:6px solid var(--text-subtle); transition:transform .12s; flex:0 0 auto; }
+  .tri { font-size:19px; line-height:1; color:var(--text-subtle);
+         transition:transform .15s; display:block; }
   details[open] > .group-head .tri { transform:rotate(90deg); }
   .group[data-region].open > .group-head .tri { transform:rotate(90deg); }
   .group[data-region] .rows { display:none; }
   .group[data-region].open .rows { display:block; }
+  .group-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
   .group-name { font-family:var(--font-mono); font-size:var(--fs-xs); letter-spacing:var(--tracking-caps);
                 text-transform:uppercase; color:var(--text-muted); font-weight:500; }
   .group-count { font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--text-subtle); }
-  .group-sel { margin-left:auto; font-family:var(--font-mono); font-size:var(--fs-xs);
+  .group-sel { font-family:var(--font-mono); font-size:var(--fs-xs);
                letter-spacing:var(--tracking-caps); text-transform:uppercase;
                color:var(--accent); font-weight:500; }
   .group-sel:empty { display:none; }
@@ -351,14 +353,14 @@ PAGE = """<!doctype html>
       <span class="sel-count" id="selcount"></span>
     </div>
     __PICKER__
-    <details class="group" id="setgrp"><summary class="group-head"><span class="tri"></span><span class="group-name">Muted words</span><span class="group-sel" id="mutebadge"></span></summary>
+    <details class="group" id="setgrp"><summary class="group-head"><span class="tri">&#8250;</span><span class="group-name">Muted words</span><span class="group-sel" id="mutebadge"></span></summary>
       <div class="rows">
         <div class="search"><input id="mute" placeholder="comma-separated, e.g. world cup, royals"></div>
         <div id="mutecount" class="muted-cap"></div>
       </div>
     </details>
     <details class="group" id="feedbackgrp">
-      <summary class="group-head"><span class="tri"></span><span class="group-name">Feedback</span></summary>
+      <summary class="group-head"><span class="tri">&#8250;</span><span class="group-name">Feedback</span></summary>
       <div style="display:flex; align-items:center; gap:8px;">
         <div class="search" style="flex:1; margin-bottom:0;">
           <input id="fbtext" placeholder="Suggest a source, report a bug, or leave feedback&hellip;">
@@ -586,9 +588,12 @@ def build_picker():
             continue
         parts.append(
             f'<div class="group" data-region="{region}"><div class="group-head">'
-            f'<button class="tri-btn" aria-label="Toggle {region}"><span class="tri"></span></button>'
+            f'<button class="tri-btn" aria-label="Toggle {region}"><span class="tri">&#8250;</span></button>'
+            f'<div class="group-right">'
             f'<span class="group-name">{region}</span>'
-            f'<span class="group-count">{len(ccs)}</span><span class="group-sel"></span></div>'
+            f'<span class="group-count">{len(ccs)}</span>'
+            f'<span class="group-sel"></span>'
+            f'</div></div>'
             f'<div class="rows">'
         )
         for cc in ccs:
